@@ -1,0 +1,602 @@
+[
+    {
+        "name": "Atalanta",
+        "colors": {
+            "background": "#0070BC",
+            "text": "#ffffff",
+            "border": "#000000"
+        },
+        "home_factor": "730",
+        "attack": "800",
+        "defense": "770",
+        "image": "images/teams/Atalanta.png",
+        "country": "IT",
+        "stadium": "Gewiss Stadium",
+        "city": "Bergamo"
+    },
+    {
+        "name": "Bologna",
+        "colors": {
+            "background": "#A11B25",
+            "text": "#192E47",
+            "border": "#ffffff"
+        },
+        "home_factor": "800",
+        "attack": "780",
+        "defense": "740",
+        "image": "images/teams/Bologna.png",
+        "country": "IT",
+        "stadium": "Renato Dall'Ara",
+        "city": "Bologna"
+    },
+    {
+        "name": "Cagliari",
+        "colors": {
+            "background": "#B00C27",
+            "text": "#002350",
+            "border": "#ffffff"
+        },
+        "home_factor": "850",
+        "attack": "650",
+        "defense": "550",
+        "image": "images/teams/Cagliari.png",
+        "country": "IT",
+        "stadium": "Unipol Domus",
+        "city": "Cagliari"
+    },
+    {
+        "name": "Como",
+        "colors": {
+            "background": "#0E4169",
+            "text": "#ffffff",
+            "border": "#0E4169"
+        },
+        "home_factor": "560",
+        "attack": "880",
+        "defense": "790",
+        "image": "images/teams/Como.png",
+        "country": "IT",
+        "stadium": "Giuseppe Sinigaglia",
+        "city": "Como"
+    },
+    {
+        "name": "Cremonese",
+        "colors": {
+            "background": "#EC1B24",
+            "text": "#ffffff",
+            "border": "#CE9C50"
+        },
+        "home_factor": "480",
+        "attack": "430",
+        "defense": "460",
+        "image": "images/teams/Cremonese.png",
+        "country": "IT",
+        "stadium": "Giovanni Zini",
+        "city": "Cremona"
+    },
+    {
+        "name": "Fiorentina",
+        "colors": {
+            "background": "#60348B",
+            "text": "#DC3123",
+            "border": "#ffffff"
+        },
+        "home_factor": "810",
+        "attack": "680",
+        "defense": "720",
+        "image": "images/teams/Fiorentina.png",
+        "country": "IT",
+        "stadium": "Artemio Franchi",
+        "city": "Firenze"
+    },
+    {
+        "name": "Genoa",
+        "colors": {
+            "background": "#AE1919",
+            "text": "#00253D",
+            "border": "#FED508"
+        },
+        "home_factor": "990",
+        "attack": "890",
+        "defense": "780",
+        "image": "images/teams/Genoa.png",
+        "country": "IT",
+        "stadium": "Luigi Ferraris",
+        "city": "Genova"
+    },
+    {
+        "name": "Inter",
+        "colors": {
+            "background": "#011E9F",
+            "text": "#000000",
+            "border": "#ffffff"
+        },
+        "home_factor": "900",
+        "attack": "920",
+        "defense": "850",
+        "image": "images/teams/Inter.png",
+        "country": "IT",
+        "stadium": "Giuseppe Meazza",
+        "city": "Milano"
+    },
+    {
+        "name": "Juventus",
+        "colors": {
+            "background": "#000000",
+            "text": "#ffffff",
+            "border": "#000000"
+        },
+        "home_factor": "800",
+        "attack": "800",
+        "defense": "900",
+        "image": "images/teams/Juventus.png",
+        "country": "IT",
+        "stadium": "Allianz Stadium",
+        "city": "Torino"
+    },
+    {
+        "name": "Lazio",
+        "colors": {
+            "background": "#76D1F6",
+            "text": "#ffffff",
+            "border": "#DEBD69"
+        },
+        "home_factor": "920",
+        "attack": "690",
+        "defense": "850",
+        "image": "images/teams/Lazio.png",
+        "country": "IT",
+        "stadium": "Olimpico",
+        "city": "Roma"
+    },
+    {
+        "name": "Lecce",
+        "colors": {
+            "background": "#002755",
+            "text": "#C89C66",
+            "border": "#002755"
+        },
+        "home_factor": "780",
+        "attack": "450",
+        "defense": "500",
+        "image": "images/teams/Lecce.png",
+        "country": "IT",
+        "stadium": "Via del Mare",
+        "city": "Lecce"
+    },
+    {
+        "name": "Milan",
+        "colors": {
+            "background": "#E11B29",
+            "text": "#000000",
+            "border": "#ffffff"
+        },
+        "home_factor": "930",
+        "attack": "850",
+        "defense": "850",
+        "image": "images/teams/Milan.png",
+        "country": "IT",
+        "stadium": "Giuseppe Meazza",
+        "city": "Milano"
+    },
+    {
+        "name": "Napoli",
+        "colors": {
+            "background": "#ffffff",
+            "text": "#192F50",
+            "border": "#192F50"
+        },
+        "home_factor": "980",
+        "attack": "870",
+        "defense": "780",
+        "image": "images/teams/Napoli.png",
+        "country": "IT",
+        "stadium": "Diego Armando Maradona",
+        "city": "Napoli"
+    },
+    {
+        "name": "Parma",
+        "colors": {
+            "background": "#ffffff",
+            "text": "#000000",
+            "border": "#FCCA01"
+        },
+        "home_factor": "750",
+        "attack": "680",
+        "defense": "700",
+        "image": "images/teams/Parma.png",
+        "country": "IT",
+        "stadium": "Ennio Tardini",
+        "city": "Parma"
+    },
+    {
+        "name": "Pisa",
+        "colors": {
+            "background": "#000000",
+            "text": "#0761AE",
+            "border": "#E20512"
+        },
+        "home_factor": "620",
+        "attack": "560",
+        "defense": "480",
+        "image": "images/teams/Pisa.png",
+        "country": "IT",
+        "stadium": "Arena Garibaldi",
+        "city": "Pisa"
+    },
+    {
+        "name": "Roma",
+        "colors": {
+            "background": "#8E001C",
+            "text": "#FEB200",
+            "border": "#000000"
+        },
+        "home_factor": "980",
+        "attack": "820",
+        "defense": "910",
+        "image": "images/teams/Roma.png",
+        "country": "IT",
+        "stadium": "Olimpico",
+        "city": "Roma"
+    },
+    {
+        "name": "Sassuolo",
+        "colors": {
+            "background": "#0EA552",
+            "text": "#000000",
+            "border": "#ffffff"
+        },
+        "home_factor": "400",
+        "attack": "730",
+        "defense": "680",
+        "image": "images/teams/Sassuolo.png",
+        "country": "IT",
+        "stadium": "Mapei Stadium",
+        "city": "Sassuolo"
+    },
+    {
+        "name": "Torino",
+        "colors": {
+            "background": "#881F18",
+            "text": "#ffffff",
+            "border": "#D79415"
+        },
+        "home_factor": "600",
+        "attack": "600",
+        "defense": "420",
+        "image": "images/teams/Torino.png",
+        "country": "IT",
+        "stadium": "Olimpico Grande Torino",
+        "city": "Torino"
+    },
+    {
+        "name": "Udinese",
+        "colors": {
+            "background": "#000000",
+            "text": "#B2B2B2",
+            "border": "#A28248"
+        },
+        "home_factor": "720",
+        "attack": "720",
+        "defense": "650",
+        "image": "images/teams/Udinese.png",
+        "country": "IT",
+        "stadium": "Friuli",
+        "city": "Udine"
+    },
+    {
+        "name": "Hellas Verona",
+        "colors": {
+            "background": "#FECC0E",
+            "text": "#002E70",
+            "border": "#ffffff"
+        },
+        "home_factor": "550",
+        "attack": "510",
+        "defense": "500",
+        "image": "images/teams/Hellas Verona.png",
+        "country": "IT",
+        "stadium": "Marcantonio Bentegodi",
+        "city": "Verona"
+    },
+    {
+        "name": "Monza",
+        "colors": {
+            "background": "#FF0000",
+            "text": "#FFFFFF",
+            "border": "#000000"
+        },
+        "home_factor": "400",
+        "attack": "500",
+        "defense": "520",
+        "image": "images/teams/Monza.png",
+        "country": "IT",
+        "stadium": "U-Power Stadium",
+        "city": "Monza"
+    },
+    {
+        "name": "Venezia",
+        "colors": {
+            "background": "#000000",
+            "text": "#FF7700",
+            "border": "#FFFFFF"
+        },
+        "home_factor": "650",
+        "attack": "520",
+        "defense": "550",
+        "image": "images/teams/Venezia.png",
+        "country": "IT",
+        "stadium": "Pierluigi Penzo",
+        "city": "Venezia"
+    },
+    {
+        "name": "Sampdoria",
+        "colors": {
+            "background": "#0050C8",
+            "text": "#FFFFFF",
+            "border": "#000000"
+        },
+        "home_factor": "750",
+        "attack": "400",
+        "defense": "410",
+        "image": "images/teams/Sampdoria.png",
+        "country": "IT",
+        "stadium": "Luigi Ferraris",
+        "city": "Genova"
+    },
+    {
+        "name": "Frosinone",
+        "colors": {
+            "background": "#FFEE00",
+            "text": "#0033CC",
+            "border": "#000000"
+        },
+        "home_factor": "680",
+        "attack": "650",
+        "defense": "610",
+        "image": "images/teams/Frosinone.png",
+        "country": "IT",
+        "stadium": "Benito Stirpe",
+        "city": "Frosinone"
+    },
+    {
+        "name": "Palermo",
+        "colors": {
+            "background": "#FFB6C1",
+            "text": "#000000",
+            "border": "#000000"
+        },
+        "home_factor": "800",
+        "attack": "620",
+        "defense": "600",
+        "image": "images/teams/Palermo.png",
+        "country": "IT",
+        "stadium": "Renzo Barbera",
+        "city": "Palermo"
+    },
+    {
+        "name": "Catanzaro",
+        "colors": {
+            "background": "#FF8C00",
+            "text": "#000000",
+            "border": "#FFFFFF"
+        },
+        "home_factor": "680",
+        "attack": "570",
+        "defense": "550",
+        "image": "images/teams/Catanzaro.png",
+        "country": "IT",
+        "stadium": "Nicola Ceravolo",
+        "city": "Catanzaro"
+    },
+    {
+        "name": "Spezia",
+        "colors": {
+            "background": "#000000",
+            "text": "#FFFFFF",
+            "border": "#000000"
+        },
+        "home_factor": "650",
+        "attack": "550",
+        "defense": "540",
+        "image": "images/teams/Spezia.png",
+        "country": "IT",
+        "stadium": "Alberto Picco",
+        "city": "La Spezia"
+    },
+    {
+        "name": "Empoli",
+        "colors": {
+            "background": "#0079C2",
+            "text": "#FFFFFF",
+            "border": "#000000"
+        },
+        "home_factor": "600",
+        "attack": "540",
+        "defense": "530",
+        "image": "images/teams/Empoli.png",
+        "country": "IT",
+        "stadium": "Carlo Castellani",
+        "city": "Empoli"
+    },
+    {
+        "name": "Modena",
+        "colors": {
+            "background": "#FFCC00",
+            "text": "#0000FF",
+            "border": "#000000"
+        },
+        "home_factor": "580",
+        "attack": "600",
+        "defense": "570",
+        "image": "images/teams/Modena.png",
+        "country": "IT",
+        "stadium": "Alberto Braglia",
+        "city": "Modena"
+    },
+    {
+        "name": "Cesena",
+        "colors": {
+            "background": "#FFFFFF",
+            "text": "#000000",
+            "border": "#000000"
+        },
+        "home_factor": "590",
+        "attack": "520",
+        "defense": "510",
+        "image": "images/teams/Cesena.png",
+        "country": "IT",
+        "stadium": "Orogel Stadium – Dino Manuzzi",
+        "city": "Cesena"
+    },
+    {
+        "name": "Bari",
+        "colors": {
+            "background": "#FFFFFF",
+            "text": "#E60000",
+            "border": "#000000"
+        },
+        "home_factor": "820",
+        "attack": "560",
+        "defense": "540",
+        "image": "images/teams/Bari.png",
+        "country": "IT",
+        "stadium": "San Nicola",
+        "city": "Bari"
+    },
+    {
+        "name": "Mantova",
+        "colors": {
+            "background": "#FF0000",
+            "text": "#FFFFFF",
+            "border": "#000000"
+        },
+        "home_factor": "520",
+        "attack": "480",
+        "defense": "470",
+        "image": "images/teams/Mantova.png",
+        "country": "IT",
+        "stadium": "Danilo Martelli",
+        "city": "Mantova"
+    },
+    {
+        "name": "Carrarese",
+        "colors": {
+            "background": "#000000",
+            "text": "#FFFF00",
+            "border": "#FFFFFF"
+        },
+        "home_factor": "530",
+        "attack": "490",
+        "defense": "480",
+        "image": "images/teams/Carrarese.png",
+        "country": "IT",
+        "stadium": "Stadio dei Marmi",
+        "city": "Carrara"
+    },
+    {
+        "name": "Juve Stabia",
+        "colors": {
+            "background": "#FFD700",
+            "text": "#000000",
+            "border": "#000000"
+        },
+        "home_factor": "620",
+        "attack": "580",
+        "defense": "560",
+        "image": "images/teams/Juve Stabia.png",
+        "country": "IT",
+        "stadium": "Romeo Menti",
+        "city": "Castellammare di Stabia"
+    },
+    {
+        "name": "Avellino",
+        "colors": {
+            "background": "#006400",
+            "text": "#FFFFFF",
+            "border": "#000000"
+        },
+        "home_factor": "570",
+        "attack": "530",
+        "defense": "520",
+        "image": "images/teams/Avellino.png",
+        "country": "IT",
+        "stadium": "Partenio-Adriano Lombardi",
+        "city": "Avellino"
+    },
+    {
+        "name": "Pescara",
+        "colors": {
+            "background": "#1E90FF",
+            "text": "#FFFFFF",
+            "border": "#000000"
+        },
+        "home_factor": "600",
+        "attack": "510",
+        "defense": "500",
+        "image": "images/teams/Pescara.png",
+        "country": "IT",
+        "stadium": "Adriatico – Giovanni Cornacchia",
+        "city": "Pescara"
+    },
+    {
+        "name": "Sudtirol",
+        "colors": {
+            "background": "#FF0000",
+            "text": "#FFFFFF",
+            "border": "#000000"
+        },
+        "home_factor": "500",
+        "attack": "540",
+        "defense": "520",
+        "image": "images/teams/Sudtirol.png",
+        "country": "IT",
+        "stadium": "Marco Druso",
+        "city": "Bolzano"
+    },
+    {
+        "name": "Reggiana",
+        "colors": {
+            "background": "#8B0000",
+            "text": "#FFFFFF",
+            "border": "#000000"
+        },
+        "home_factor": "560",
+        "attack": "520",
+        "defense": "500",
+        "image": "images/teams/Reggiana.png",
+        "country": "IT",
+        "stadium": "Città del Tricolore",
+        "city": "Reggio Emilia"
+    },
+    {
+        "name": "Padova",
+        "colors": {
+            "background": "#0066CC",
+            "text": "#FFFFFF",
+            "border": "#000000"
+        },
+        "home_factor": "550",
+        "attack": "510",
+        "defense": "500",
+        "image": "images/teams/Padova.png",
+        "country": "IT",
+        "stadium": "Euganeo",
+        "city": "Padova"
+    },
+    {
+        "name": "Virtus Entella",
+        "colors": {
+            "background": "#0000FF",
+            "text": "#FFFFFF",
+            "border": "#000000"
+        },
+        "home_factor": "420",
+        "attack": "500",
+        "defense": "490",
+        "image": "images/teams/Virtus Entella.png",
+        "country": "IT",
+        "stadium": "Comunale",
+        "city": "Chiavari"
+    }
+]

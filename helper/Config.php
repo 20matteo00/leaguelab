@@ -1,0 +1,39 @@
+<?php
+
+class Config
+{
+    private const STYLE_PATH = "media/style.css";
+    private const SCRIPT_PATH = "media/script.js";
+
+    public static function renderStyle()
+    {
+?>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+        <link rel="stylesheet" href="<?= self::STYLE_PATH ?>">
+    <?php
+    }
+
+    public static function renderScript()
+    {
+    ?>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+        <script src="<?= self::SCRIPT_PATH ?>"></script>
+    <?php
+    }
+
+    public static function renderMeta()
+    {
+    ?>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?php
+    }
+
+    public static function renderTitle($title)
+    {
+    ?>
+        <title><?= $title ?></title>
+<?php
+    }    
+}

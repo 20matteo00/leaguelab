@@ -1,0 +1,43 @@
+/* Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.hover-shadow:hover {
+    transform: translateY(-3px);
+    transition: 0.2s;
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+}
+
+.sort-badge {
+    font-size: .65em;
+    background: #ffc107;
+    color: #000;
+    border-radius: 50%;
+    padding: 1px 4px;
+    margin-left: 1px;
+}
+
+/*IMMAGINI*/
+
+.img-sm {
+    width: 32px;
+    height: auto;
+}
+
+.img-md {
+    width: 64px;
+    height: auto;
+}
+
+.img-lg {
+    width: 96px;
+    height: auto;
+}
