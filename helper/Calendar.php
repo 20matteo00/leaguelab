@@ -42,15 +42,28 @@ class Calendar
         $isEnded = Seasons::checkSeasonEnd($seasonId);
 ?>
 
+        <?php /* if (!$isEnded): ?>
+            <div class="position-fixed bottom-0 start-0 w-100 p-3 bg-white z-1">
+                <div class="container d-flex gap-2">
+                    <button type="submit" class="btn btn-warning fw-bold w-100" name="action" value="simulate_all">
+                        ⚡ Simula tutto
+                    </button>
+                    <button type="submit" class="btn btn-danger fw-bold w-100" name="action" value="delete_all">
+                        ✕ Elimina tutto
+                    </button>
+                </div>
+            </div>
+        <?php endif; */ ?>
+
         <!-- FORM UNICO CHE WRAPPA TUTTO -->
         <form method="POST">
             <input type="hidden" name="match_ids" value="<?= $allIdsStr ?>">
             <!-- AZIONI LIVELLO -->
             <?php if (!$isEnded): ?>
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-4">
-                    <button type="submit" name="action" value="save_level" class="btn btn-success fw-bold p-3 w-100">💾 Salva tutto</button>
-                    <button type="submit" name="action" value="simulate_level" class="btn btn-warning fw-bold p-3 w-100">⚡ Simula tutto</button>
-                    <button type="submit" name="action" value="delete_level" class="btn btn-danger fw-bold p-3 w-100">✕ Elimina tutto</button>
+                    <button type="submit" name="action" value="save_level" class="btn btn-success fw-bold p-3 w-100">💾 Salva Livello</button>
+                    <button type="submit" name="action" value="simulate_level" class="btn btn-warning fw-bold p-3 w-100">⚡ Simula Livello</button>
+                    <button type="submit" name="action" value="delete_level" class="btn btn-danger fw-bold p-3 w-100">✕ Elimina Livello</button>
                 </div>
             <?php endif; ?>
             <div class="row g-4">

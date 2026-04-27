@@ -147,7 +147,7 @@ class Standings
         return self::sortStandingsWithNames($standings, $teams);
     }
 
-    private static function renderStandingsTable(array $standings, array $teams, string $title, $comp_level = []): void
+    public static function renderStandingsTable(array $standings, array $teams, string $title, $comp_level = [], $countEdition = false): void
     {
     ?>
         <?php if ($title): ?>
@@ -159,6 +159,9 @@ class Standings
                     <tr>
                         <th>#</th>
                         <th class="text-start">Squadra</th>
+                        <?php if ($countEdition): ?>
+                            <th title="Edizioni partecipate">Ed</th>
+                        <?php endif; ?>
                         <th title="Punti">Pts</th>
                         <th title="Partite giocate">PG</th>
                         <th title="Vittorie">V</th>
@@ -187,6 +190,9 @@ class Standings
                             <td class="text-start">
                                 <?= Teams::renderTeams($teamId, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
                             </td>
+                            <?php if ($countEdition): ?>
+                                <td><?= $s['editions'] ?? 0 ?></td>
+                            <?php endif; ?>
                             <td><strong><?= $s['pts'] ?></strong></td>
                             <td><?= $s['played'] ?></td>
                             <td class="text-success"><?= $s['won'] ?></td>
@@ -360,7 +366,7 @@ class Standings
                 </tbody>
             </table>
         </div>
-<?php
+    <?php
     }
 
     public static function renderProgress($seasonId, $level, $subaction): void
@@ -396,5 +402,324 @@ class Standings
         self::renderLeaderTimeline($allMatches, $teams, $rounds);
 
         self::renderStandingsTable($standings, $teams, 'Classifica dopo la Giornata ' . $upToRound);
+    }
+
+
+    private static function buildAllTimeStandings($compId): array
+    {
+        $seasons = DB::table('seasons')
+            ->select('id')
+            ->where('competition_id', '=', $compId)
+            ->get();
+        $seasonIds = array_column($seasons, 'id');
+
+        $matches = DB::table('matches')
+            ->whereIn('season_id', $seasonIds)
+            ->get();
+
+        $seasonTeams = DB::table('season_teams')
+            ->whereIn('season_id', $seasonIds)
+            ->get();
+
+        $teamsByLevel = [];
+        $editionsByLevel = []; // [levelNum][teamId] = contatore stagioni
+
+        foreach ($seasonTeams as $row) {
+            $level    = (int)$row['level'];
+            $teamId   = (int)$row['team_id'];
+            $seasonId = (int)$row['season_id'];
+
+            $teamsByLevel[$level][$teamId] = $teamId;
+            $editionsByLevel[$level][$teamId] = ($editionsByLevel[$level][$teamId] ?? 0) + 1;
+        }
+
+        ksort($teamsByLevel);
+
+        $result = [];
+        foreach ($teamsByLevel as $levelNum => $teamsAssoc) {
+            $levelMatches = array_values(array_filter(
+                $matches,
+                fn($m) => (int)$m['level'] === $levelNum
+            ));
+
+            $standings = Standings::buildStandings($levelMatches, $teamsAssoc, 'total');
+
+            // Inietta le edizioni in ogni riga della classifica
+            foreach ($standings as &$row) {
+                $row['editions'] = $editionsByLevel[$levelNum][$row['team_id']] ?? 0;
+            }
+            unset($row);
+
+            $result[$levelNum] = [
+                'teams'     => $teamsAssoc,
+                'standings' => $standings,
+            ];
+        }
+
+        return $result;
+    }
+
+    public static function renderAllTimeStandings($compId): void
+    {
+        $byLevel = self::buildAllTimeStandings($compId);
+
+        if (empty($byLevel)) {
+            echo '<p class="text-muted">Nessun dato disponibile.</p>';
+            return;
+        }
+    ?>
+        <div class="mb-4">
+            <h5 class="fw-bold mb-3">🏆 Classifica All-Time</h5>
+
+            <?php if (count($byLevel) > 1): ?>
+                <!-- Tab nav -->
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <?php foreach ($byLevel as $levelNum => $_): ?>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link <?= $levelNum === array_key_first($byLevel) ? 'active' : '' ?>"
+                                data-bs-toggle="tab"
+                                data-bs-target="#alltime-level-<?= $levelNum ?>"
+                                type="button">
+                                Livello <?= $levelNum ?>
+                            </button>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+
+                <div class="tab-content">
+                    <?php foreach ($byLevel as $levelNum => $data): ?>
+                        <div class="tab-pane fade <?= $levelNum === array_key_first($byLevel) ? 'show active' : '' ?>"
+                            id="alltime-level-<?= $levelNum ?>">
+                            <?php self::renderStandingsTable(
+                                $data['standings'],
+                                $data['teams'],
+                                '',
+                                [],
+                                true
+                            ) ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+            <?php else: ?>
+                <!-- Livello singolo, niente tab -->
+                <?php foreach ($byLevel as $levelNum => $data): ?>
+                    <?php self::renderStandingsTable(
+                        $data['standings'],
+                        $data['teams'],
+                        'Livello ' . $levelNum,
+                        [],
+                        true
+                    ) ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    <?php
+    }
+
+    public static function renderHallOfFame($compId): void
+    {
+        $seasons = DB::table('seasons')
+            ->where('competition_id', '=', $compId)
+            ->orderBy('season_year')
+            ->get();
+
+        if (empty($seasons)) {
+            echo '<p class="text-muted">Nessun dato disponibile.</p>';
+            return;
+        }
+
+        $seasonIds = array_column($seasons, 'id');
+        $seasonsById = array_column($seasons, null, 'id');
+
+        // Recupera tutti i livelli configurati
+        $compLevels = DB::table('competition_levels')
+            ->where('competition_id', '=', $compId)
+            ->orderBy('level')
+            ->get();
+        $levelNums = array_column($compLevels, 'level');
+
+        // Se nessun livello configurato, usa il livello 1 di default
+        if (empty($levelNums)) $levelNums = [1];
+
+        // Per ogni livello, per ogni stagione, calcola il podio
+        $podioByLevel = [];
+        foreach ($levelNums as $levelNum) {
+            foreach ($seasons as $season) {
+                $sid = $season['id'];
+
+                $seasonTeamsRaw = DB::table('season_teams')
+                    ->where('season_id', '=', $sid)
+                    ->where('level', '=', $levelNum)
+                    ->get();
+
+                if (empty($seasonTeamsRaw)) continue;
+
+                $teamsAssoc = array_column($seasonTeamsRaw, 'team_id', 'team_id');
+
+                $matches = DB::table('matches')
+                    ->where('season_id', '=', $sid)
+                    ->where('level', '=', $levelNum)
+                    ->get();
+
+                $standings = self::buildStandings($matches, $teamsAssoc, 'total');
+                $top3 = array_slice(array_values($standings), 0, 3);
+
+                if (!empty($top3)) {
+                    $podioByLevel[$levelNum][$sid] = $top3;
+                }
+            }
+        }
+
+        if (empty($podioByLevel)) {
+            echo '<p class="text-muted">Nessun dato disponibile.</p>';
+            return;
+        }
+
+        $medalColors = [
+            1 => ['bg' => '#FFD700', 'text' => '#000', 'label' => '🥇'],
+            2 => ['bg' => '#C0C0C0', 'text' => '#000', 'label' => '🥈'],
+            3 => ['bg' => '#CD7F32', 'text' => '#fff', 'label' => '🥉'],
+        ];
+    ?>
+        <div class="mb-4">
+            <h5 class="fw-bold mb-3">🏆 Albo d'Oro</h5>
+
+            <?php if (count($podioByLevel) > 1): ?>
+                <ul class="nav nav-tabs mb-4" role="tablist">
+                    <?php foreach ($podioByLevel as $levelNum => $_): ?>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link <?= $levelNum === array_key_first($podioByLevel) ? 'active' : '' ?>"
+                                data-bs-toggle="tab"
+                                data-bs-target="#hof-level-<?= $levelNum ?>"
+                                type="button">
+                                Livello <?= $levelNum ?>
+                            </button>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+
+            <div class="tab-content">
+                <?php foreach ($podioByLevel as $levelNum => $stagioni): ?>
+                    <div class="tab-pane fade <?= $levelNum === array_key_first($podioByLevel) ? 'show active' : '' ?>"
+                        id="hof-level-<?= $levelNum ?>">
+
+                        <div class="row g-4">
+                            <?php foreach ($stagioni as $sid => $top3): ?>
+                                <div class="col-12 col-md-6 col-xl-4">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-header bg-dark text-white text-center fw-bold">
+                                            📅 <?= htmlspecialchars($seasonsById[$sid]['season_year']) ?>
+                                        </div>
+                                        <div class="card-body d-flex flex-column justify-content-end">
+
+                                            <!-- Podio -->
+                                            <div class="d-flex align-items-end justify-content-center gap-2" style="height: 180px;">
+
+                                                <!-- 2° posto - sinistra -->
+                                                <div class="d-flex flex-column align-items-center" style="flex:1">
+                                                    <?php if (isset($top3[1])): ?>
+                                                        <div class="mb-1">
+                                                            <?= Teams::renderTeams($top3[1]['team_id'], 'fw-semibold px-2 rounded-pill d-inline-block small') ?>
+                                                        </div>
+                                                        <div class="w-100 rounded-top d-flex flex-column align-items-center justify-content-center py-2"
+                                                            style="background:<?= $medalColors[2]['bg'] ?>;color:<?= $medalColors[2]['text'] ?>;height:100px">
+                                                            <div style="font-size:1.5rem">🥈</div>
+                                                            <div class="fw-bold"><?= $top3[1]['pts'] ?> pts</div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+
+                                                <!-- 1° posto - centro -->
+                                                <div class="d-flex flex-column align-items-center" style="flex:1">
+                                                    <?php if (isset($top3[0])): ?>
+                                                        <div class="mb-1">
+                                                            <?= Teams::renderTeams($top3[0]['team_id'], 'fw-semibold px-2 rounded-pill d-inline-block small') ?>
+                                                        </div>
+                                                        <div class="w-100 rounded-top d-flex flex-column align-items-center justify-content-center py-2"
+                                                            style="background:<?= $medalColors[1]['bg'] ?>;color:<?= $medalColors[1]['text'] ?>;height:140px">
+                                                            <div style="font-size:1.5rem">🥇</div>
+                                                            <div class="fw-bold"><?= $top3[0]['pts'] ?> pts</div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+
+                                                <!-- 3° posto - destra -->
+                                                <div class="d-flex flex-column align-items-center" style="flex:1">
+                                                    <?php if (isset($top3[2])): ?>
+                                                        <div class="mb-1">
+                                                            <?= Teams::renderTeams($top3[2]['team_id'], 'fw-semibold px-2 rounded-pill d-inline-block small') ?>
+                                                        </div>
+                                                        <div class="w-100 rounded-top d-flex flex-column align-items-center justify-content-center py-2"
+                                                            style="background:<?= $medalColors[3]['bg'] ?>;color:<?= $medalColors[3]['text'] ?>;height:70px">
+                                                            <div style="font-size:1.5rem">🥉</div>
+                                                            <div class="fw-bold"><?= $top3[2]['pts'] ?> pts</div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <?php
+                        // Dopo il loop delle stagioni, prima della chiusura del tab-pane, aggiungi:
+
+                        // Calcola riepilogo medaglie per livello
+                        $medaglie = [];
+                        foreach ($stagioni as $sid => $top3) {
+                            foreach ($top3 as $pos => $entry) {
+                                $tid = $entry['team_id'];
+                                if (!isset($medaglie[$tid])) {
+                                    $medaglie[$tid] = [1 => 0, 2 => 0, 3 => 0];
+                                }
+                                $medaglie[$tid][$pos + 1]++;
+                            }
+                        }
+
+                        // Ordina: prima per #1, poi #2, poi #3
+                        uasort($medaglie, function ($a, $b) {
+                            if ($b[1] !== $a[1]) return $b[1] <=> $a[1];
+                            if ($b[2] !== $a[2]) return $b[2] <=> $a[2];
+                            return $b[3] <=> $a[3];
+                        });
+                        ?>
+                        <!-- Tabella riepilogo medaglie -->
+                        <div class="table-responsive mt-4">
+                            <table class="table table-hover align-middle shadow-sm text-center">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th class="text-start">Squadra</th>
+                                        <th title="Vittorie">🥇</th>
+                                        <th title="Secondi posti">🥈</th>
+                                        <th title="Terzi posti">🥉</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php $pos = 1;
+                                    foreach ($medaglie as $tid => $m): ?>
+                                        <tr>
+                                            <td class="text-muted"><?= $pos++ ?></td>
+                                            <td class="text-start">
+                                                <?= Teams::renderTeams($tid, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
+                                            </td>
+                                            <td><strong><?= $m[1] ?: '-' ?></strong></td>
+                                            <td><?= $m[2] ?: '-' ?></td>
+                                            <td><?= $m[3] ?: '-' ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+<?php
     }
 }
