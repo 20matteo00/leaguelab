@@ -101,7 +101,7 @@ $isEndedSeason = $statusSeason == 2 ? true : false;
             case 'stats':
                 Stats::renderMenu($baseUrl, $level, $competition['modality']);
                 $subaction = $_GET['subaction'] ?? 'overview';
-                Stats::renderStats($id, $level);
+                Stats::renderStats($id, $level, $subaction);
                 break;
             case 'end':
                 Seasons::setSeasonStatusEnd($id);

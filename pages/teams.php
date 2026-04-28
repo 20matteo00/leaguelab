@@ -2,7 +2,6 @@
 $menu = [
     'Crea'       => 'index.php?page=teams&action=create',
     'Visualizza' => 'index.php?page=teams&action=view',
-    /* 'Importa'   => 'index.php?page=teams&action=import', */
 ];
 $action = $_GET['action'] ?? 'view';
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -368,9 +367,6 @@ $linkExtra = [
 
             <!-- PAGINAZIONE -->
             <?= Pagination::renderPagination($pages, $page_num, 'teams', ['sorts' => $sortsParam, 'limit' => $limit]) ?>
-
-        <?php elseif ($action === 'import'): ?>
-            <?php Teams::importTeams() ?>
         <?php endif; ?>
 
     </div>

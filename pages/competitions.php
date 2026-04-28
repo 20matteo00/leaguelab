@@ -2,7 +2,6 @@
 $menu = [
     'Crea'       => 'index.php?page=competitions&action=create',
     'Visualizza' => 'index.php?page=competitions&action=view',
-    /* 'Importa'   => 'index.php?page=competitions&action=import', */
 ];
 $action = $_GET['action'] ?? 'view';
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -651,7 +650,7 @@ $linkExtra = [
                                         <div>Qualificati FF: <?= $competition['qualifiers'] ?> per gruppo</div>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= Seasons::getLastSeason($competition['id'])['season_year'] ?></td>
+                                <td><?= Seasons::getLastSeason($competition['id'])['season_year'] ?? 'Non Iniziata' ?></td>
                                 <td>
                                     <div class="d-flex gap-1 justify-content-center">
                                         <a href="index.php?page=competition&id=<?= $competition['id'] ?>"

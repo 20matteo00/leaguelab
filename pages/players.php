@@ -2,7 +2,6 @@
 $menu = [
     'Crea'      => 'index.php?page=players&action=create',
     'Visualizza' => 'index.php?page=players&action=view',
-    /* 'Importa'   => 'index.php?page=players&action=import', */
 ];
 $action = $_GET['action'] ?? 'view';
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -357,9 +356,6 @@ $sortsParam   = json_encode($sorts);
 
             <!-- PAGINAZIONE — passa anche sorts e limit -->
             <?= Pagination::renderPagination($pages, $page_num, 'players', ['sorts' => $sortsParam, 'limit' => $limit]) ?>
-
-        <?php elseif ($action === 'import'): ?>
-            <?php Players::importPlayers() ?>
         <?php endif; ?>
 
     </div>

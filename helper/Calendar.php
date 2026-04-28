@@ -21,16 +21,20 @@ class Calendar
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $parsed = Calendar::parseCalendarPost($_POST, $grouped);
+            $parsed = self::parseCalendarPost($_POST, $grouped);
 
-            match ($parsed['action']) {
-                'save'     => Calendar::saveMatches($parsed['ids'], $parsed['post']),
-                'simulate' => Calendar::simulateMatches($parsed['ids']),
-                'delete'   => Calendar::deleteMatches($parsed['ids']),
-                default    => null,
-            };
+            if ($_POST['action'] == 'simulate_all') self::simulateAllMatchesBySeason($seasonId, $level);
+            elseif ($_POST['action'] == 'delete_all') self::DeleteAllMatchesBySeason($seasonId, $level);
+            else {
+                match ($parsed['action']) {
+                    'save'     => self::saveMatches($parsed['ids'], $parsed['post']),
+                    'simulate' => self::simulateMatches($parsed['ids']),
+                    'delete'   => self::deleteMatches($parsed['ids']),
+                    default    => null,
+                };
+                Events::generatePlayersStatsForMatches($parsed['ids']);
+            }
 
-            Events::generatePlayersStatsForMatches($parsed['ids']);
 
             $anchor = $parsed['round'] !== null ? '#round-' . $parsed['round'] : '';
             header("Location: index.php?page=season&id=" . $seasonId . "&level=" . $level . "&action=calendar" . $anchor);
@@ -42,21 +46,22 @@ class Calendar
         $isEnded = Seasons::checkSeasonEnd($seasonId);
 ?>
 
-        <?php /* if (!$isEnded): ?>
-            <div class="position-fixed bottom-0 start-0 w-100 p-3 bg-white z-1">
-                <div class="container d-flex gap-2">
-                    <button type="submit" class="btn btn-warning fw-bold w-100" name="action" value="simulate_all">
-                        ⚡ Simula tutto
-                    </button>
-                    <button type="submit" class="btn btn-danger fw-bold w-100" name="action" value="delete_all">
-                        ✕ Elimina tutto
-                    </button>
-                </div>
-            </div>
-        <?php endif; */ ?>
+
 
         <!-- FORM UNICO CHE WRAPPA TUTTO -->
         <form method="POST">
+            <?php if (!$isEnded): ?>
+                <div class="position-fixed bottom-0 start-0 w-100 p-3 bg-white z-1">
+                    <div class="container d-flex gap-2">
+                        <button type="submit" class="btn btn-warning fw-bold w-100" name="action" value="simulate_all">
+                            ⚡ Simula tutto
+                        </button>
+                        <button type="submit" class="btn btn-danger fw-bold w-100" name="action" value="delete_all">
+                            ✕ Elimina tutto
+                        </button>
+                    </div>
+                </div>
+            <?php endif; ?>
             <input type="hidden" name="match_ids" value="<?= $allIdsStr ?>">
             <!-- AZIONI LIVELLO -->
             <?php if (!$isEnded): ?>
@@ -447,5 +452,21 @@ class Calendar
         </div>
 
 <?php
+    }
+
+    private static function simulateAllMatchesBySeason($seasonId, $level)
+    {
+        $matches = DB::table('matches')->select('id')->where('season_id', '=', $seasonId)->get();
+        $matches = array_column($matches, 'id');
+        self::simulateMatches($matches);
+        Events::generatePlayersStatsForMatches($matches);
+    }
+
+    private static function deleteAllMatchesBySeason($seasonId, $level)
+    {
+        $matches = DB::table('matches')->select('id')->where('season_id', '=', $seasonId)->get();
+        $matches = array_column($matches, 'id');
+        self::deleteMatches($matches);
+        Events::generatePlayersStatsForMatches($matches);
     }
 }
