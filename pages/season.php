@@ -43,16 +43,20 @@ $isEndedSeason = $statusSeason == 2 ? true : false;
     ?>
     <!-- ── HEADER ──────────────────────────────────────────────────────────── -->
     <div class="row my-3 g-3 align-items-center">
-        <?php if ($logo): ?>
-            <div class="col-auto">
-                <img src="<?= htmlspecialchars($logo) ?>"
-                    alt="<?= htmlspecialchars($competition['name']) ?>"
-                    style="height:80px" class="rounded">
+        <a class="col" href="index.php?page=competition&id=<?= $competition['id'] ?>">
+            <div class="row">
+                <?php if ($logo): ?>
+                    <div class="col-auto">
+                        <img src="<?= htmlspecialchars($logo) ?>"
+                            alt="<?= htmlspecialchars($competition['name']) ?>"
+                            style="height:80px" class="rounded">
+                    </div>
+                <?php endif; ?>
+                <div class="col">
+                    <?= Competitions::renderCompetitions($competition['id'], 'p-2 rounded-pill h1 fw-bold', true) ?>
+                </div>
             </div>
-        <?php endif; ?>
-        <div class="col">
-            <?= Competitions::renderCompetitions($competition['id'], 'p-2 rounded-pill h1 fw-bold', true) ?>
-        </div>
+        </a>
         <div class="col-auto">
             <span class="fw-semibold h5">Stagione <?= $season['season_year'] ?></span>
         </div>
@@ -95,6 +99,8 @@ $isEndedSeason = $statusSeason == 2 ? true : false;
                 Markers::renderMarkerStandings($id, $level);
                 break;
             case 'stats':
+                Stats::renderMenu($baseUrl, $level, $competition['modality']);
+                $subaction = $_GET['subaction'] ?? 'overview';
                 Stats::renderStats($id, $level);
                 break;
             case 'end':

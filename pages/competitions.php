@@ -617,6 +617,7 @@ $linkExtra = [
                             <th><?= Pagination::sortHeader('name',         'Nome',          $sorts, $linkExtra) ?></th>
                             <th><?= Pagination::sortHeader('modality',     'Modalità',      $sorts, $linkExtra) ?></th>
                             <th><?= Pagination::sortHeader('participants', 'Partecipanti',  $sorts, $linkExtra) ?></th>
+                            <th>Ultima Stagione</th>
                             <th>Azioni</th>
                         </tr>
                     </thead>
@@ -641,7 +642,7 @@ $linkExtra = [
                                     <?= array_column($modality, 'name', 'code')[$competition['modality']] ?? '' ?>
                                     <?= ($competition['round_trip'] != 0) ? '(A/R)' : '(Solo Andata)' ?>
                                 </td>
-                                <td class="text-start">
+                                <td class="">
                                     <div><strong><?= $competition['participants'] ?></strong></div>
                                     <?php if (!empty($competition['num_groups'])): ?>
                                         <div>Gruppi: <?= $competition['num_groups'] ?></div>
@@ -650,6 +651,7 @@ $linkExtra = [
                                         <div>Qualificati FF: <?= $competition['qualifiers'] ?> per gruppo</div>
                                     <?php endif; ?>
                                 </td>
+                                <td><?= Seasons::getLastSeason($competition['id'])['season_year'] ?></td>
                                 <td>
                                     <div class="d-flex gap-1 justify-content-center">
                                         <a href="index.php?page=competition&id=<?= $competition['id'] ?>"

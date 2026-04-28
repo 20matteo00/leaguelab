@@ -22,13 +22,13 @@ $player = DB::table('players')->where('id', '=', $id)->first();
             <?php endif; ?>
             <div class="col">
                 <div class="d-flex justify-content-start align-items-center h-100">
-                    <?= Players::renderPlayers($player['id'], 'p-2 rounded-pill h1 w-100 text-center fw-bold me-2', true) ?>
+                    <?= Players::renderPlayers($player['id'], 'p-2 rounded-pill h1 text-center fw-bold me-2', true) ?>
                 </div>
             </div>
             <div class="col-auto">
-                <div class="d-flex justify-content-center align-items-center h-100">
+                <a class="d-flex justify-content-center align-items-center h-100" href="index.php?page=team&id=<?= $player['team_id'] ?>">
                     <?= Teams::renderTeams($player['team_id'], 'p-2 rounded-pill h1 w-100 text-center fw-bold mx-2', true, true) ?>
-                </div>
+                </a>
             </div>
         </div>
         <hr>

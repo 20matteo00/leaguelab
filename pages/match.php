@@ -18,22 +18,22 @@ $logo   = $images['logo'] ?? null;
 
     <!-- MATCH INFO -->
     <div class="row g-3 mb-4">
-        <div class="col-12 col-md-4">
+        <a class="col-12 col-md-4" href="index.php?page=competition&id=<?= $competition['id'] ?>">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body text-center">
                     <div class="fw-bold mb-1">Competizione</div>
                     <?= Competitions::renderCompetitions($competition['id'], 'fw-semibold') ?>
                 </div>
             </div>
-        </div>
-        <div class="col-12 col-md-4">
+        </a>
+        <a class="col-12 col-md-4" href="index.php?page=season&id=<?= $season['id'] ?>">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body text-center">
                     <div class="fw-bold mb-1">Stagione</div>
                     <span class="text-muted"><?= $season['season_year'] ?></span>
                 </div>
             </div>
-        </div>
+        </a>
         <div class="col-12 col-md-4">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body text-center">
@@ -93,7 +93,8 @@ $logo   = $images['logo'] ?? null;
                     $player = DB::table('players')->where('id', '=', $event['player_id'])->first();
                     $teamId = $player['team_id'];
                     $isHome = $teamId == $match['team_home_id'];
-                    if ($isHome) $homeScore++; else $awayScore++;
+                    if ($isHome) $homeScore++;
+                    else $awayScore++;
 
                     $assist = DB::table('match_events')
                         ->where('match_id', '=', $match['id'])

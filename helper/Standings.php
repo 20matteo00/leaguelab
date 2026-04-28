@@ -27,6 +27,11 @@ class Standings
             'subaction' => 'second-leg',
             'icon' => 'arrow-left-circle',
             'label' => 'Ritorno'
+        ],
+        [
+            'subaction' => 'expected',
+            'icon' => 'x-circle',
+            'label' => 'Prevista'
         ]
 
     ];
@@ -217,6 +222,10 @@ class Standings
 
     public static function renderStandings($seasonId, $level, $subaction, $round_trip): void
     {
+        if ($subaction == 'expected') {
+            Standings::renderExpectedStandings($seasonId, $level);
+            return;
+        }
         $teams = Seasons::getTeamsLevelsBySeason($seasonId)[$level];
         $teams = Teams::orderTeamsByName($teams);
         $comp_params = [];
@@ -719,6 +728,75 @@ class Standings
                     </div>
                 <?php endforeach; ?>
             </div>
+        </div>
+    <?php
+    }
+
+    public static function renderExpectedStandings($seasonId, $level): void
+    {
+        $teams = Seasons::getTeamsLevelsBySeason($seasonId)[$level];
+        $teamsAssoc = array_combine($teams, $teams);
+
+        $avgDefense = 500; // difesa avversaria media di riferimento
+        $avgStrength = ['defense' => $avgDefense, 'home_boost' => 1.0, 'attack' => $avgDefense];
+
+        $rows = [];
+        foreach ($teamsAssoc as $teamId) {
+            $s     = Calendar::getTeamStrength($teamId);
+            $forze = Calendar::getForzaEffettiva($s, $avgStrength);
+
+            $rows[$teamId] = [
+                'team_id'     => $teamId,
+                'attack'      => round($s['attack']),
+                'defense'     => round($s['defense']),
+                'home_factor' => round($s['home_factor']),
+                'forza_home'  => round($forze['forza_home']),
+                'forza_away'  => round($forze['forza_away']),
+                'forza_avg'   => round(($forze['forza_home'] + $forze['forza_away']) / 2),
+            ];
+        }
+
+        uasort($rows, fn($a, $b) => $b['forza_avg'] <=> $a['forza_avg']);
+    ?>
+        <h6 class="fw-bold mt-4 mb-2">Classifica Prevista</h6>
+        <div class="table-responsive mb-4">
+            <table class="table table-hover align-middle shadow-sm text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th class="text-start">Squadra</th>
+                        <th title="Attacco">ATK</th>
+                        <th title="Difesa">DEF</th>
+                        <th title="Fattore Casa">🏠</th>
+                        <th title="Forza Casa">F.Casa</th>
+                        <th title="Forza Trasferta">F.Trasf</th>
+                        <th title="Forza Media">F.Media</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $pos = 1;
+                    foreach ($rows as $teamId => $r): ?>
+                        <tr>
+                            <td class="text-muted"><?= $pos++ ?></td>
+                            <td class="text-start">
+                                <?= Teams::renderTeams($teamId, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
+                            </td>
+                            <td><?= $r['attack'] ?></td>
+                            <td><?= $r['defense'] ?></td>
+                            <td><?= $r['home_factor'] ?></td>
+                            <td>
+                                <span class="badge bg-success"><?= $r['forza_home'] ?></span>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary"><?= $r['forza_away'] ?></span>
+                            </td>
+                            <td>
+                                <strong><?= $r['forza_avg'] ?></strong>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
 <?php
     }

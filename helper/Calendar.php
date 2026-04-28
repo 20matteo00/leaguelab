@@ -237,75 +237,124 @@ class Calendar
             ]);
     }
 
+    private static function pesoRand(int $min, int $max): int
+    {
+        $pesi = [
+            0 => 50,
+            1 => 60,
+            2 => 40,
+            3 => 25,
+            4 => 12,
+            5 => 8,
+            6 => 4,
+            7 => 1
+        ];
+
+        $pesiFiltrati = array_filter(
+            $pesi,
+            fn($k) => $k >= $min && $k <= $max,
+            ARRAY_FILTER_USE_KEY
+        );
+
+        $sommaPesi = array_sum($pesiFiltrati);
+        $random    = rand(0, $sommaPesi - 1);
+        $soglia    = 0;
+
+        foreach ($pesiFiltrati as $numero => $peso) {
+            $soglia += $peso;
+            if ($random < $soglia) return $numero;
+        }
+
+        return $min;
+    }
+
+    public static function getTeamStrength(int $teamId): array
+    {
+        $teamStats    = Teams::getTeamStats($teamId);
+        $playersStats = Players::getPlayersStatsByTeam($teamId);
+
+        $attack     = $teamStats['attack']   * 0.75 + $playersStats['attack']   * 0.25;
+        $defense    = $teamStats['defense']  * 0.75 + $playersStats['defense']  * 0.25;
+        $homeFactor = $teamStats['home_factor'];
+
+        $homeBoost = 1.0 + ($homeFactor / 999) * 0.15;
+
+        return [
+            'attack'      => $attack,
+            'defense'     => $defense,
+            'home_factor' => $homeFactor,
+            'home_boost'  => $homeBoost,
+        ];
+    }
+
+    public static function getForzaEffettiva(array $strengthHome, array $strengthAway): array
+    {
+        $forzaHome = min(999, $strengthHome['attack'] * $strengthHome['home_boost'] * 0.6 + (999 - $strengthAway['defense']) * 0.4);
+        $forzaAway = min(999, $strengthAway['attack']                               * 0.6 + (999 - $strengthHome['defense']) * 0.4);
+
+        return [
+            'forza_home' => $forzaHome,
+            'forza_away' => $forzaAway,
+        ];
+    }
+
     private static function simulateMatch($matchId): array
     {
-        $matchTeams      = DB::table('matches')->select('team_home_id, team_away_id')->where('id', '=', $matchId)->first();
-        $teamHomeStats   = Teams::getTeamStats($matchTeams['team_home_id']);
-        $teamAwayStats   = Teams::getTeamStats($matchTeams['team_away_id']);
-        $playersHomeStats = Players::getPlayersStatsByTeam($matchTeams['team_home_id']);
-        $playersAwayStats = Players::getPlayersStatsByTeam($matchTeams['team_away_id']);
+        $matchTeams = DB::table('matches')
+            ->select('team_home_id, team_away_id')
+            ->where('id', '=', $matchId)
+            ->first();
 
-        $attackHome  = $teamHomeStats['attack']  * 0.7 + $playersHomeStats['attack']  * 0.3;
-        $defenseHome = $teamHomeStats['defense'] * 0.7 + $playersHomeStats['defense'] * 0.3;
-        $homeFactor  = $teamHomeStats['home_factor'];
-        $attackAway  = $teamAwayStats['attack']  * 0.7 + $playersAwayStats['attack']  * 0.3;
-        $defenseAway = $teamAwayStats['defense'] * 0.7 + $playersAwayStats['defense'] * 0.3;
+        $strengthHome = self::getTeamStrength($matchTeams['team_home_id']);
+        $strengthAway = self::getTeamStrength($matchTeams['team_away_id']);
+        $forze        = self::getForzaEffettiva($strengthHome, $strengthAway);
 
-        // sqrt normalizzazione 0-999 → 0.1-2.0
-        $norm = fn(float $v): float => 0.1 + (sqrt($v / 999) * 1.9);
+        $ratio = ($forze['forza_home'] - $forze['forza_away']) / 999;
+        $noise = mt_rand(-300, 300) / 999;
+        $score = $ratio + $noise;
 
-        $hAtk = $norm($attackHome);
-        $hDef = $norm($defenseHome);
-        $hFact = $norm($homeFactor);
-        $aAtk = $norm($attackAway);
-        $aDef = $norm($defenseAway);
+        $gol1 = 0;
+        $gol2 = 0;
 
-        // squadra media di riferimento
-        $avg = $norm(500);
-
-        // forza relativa
-        $homeRatio = ($hAtk / $avg) / ($aDef / $avg);
-        $awayRatio = ($aAtk / $avg) / ($hDef / $avg);
-
-        // fattore casa: 0% → +30% in base a homeFactor
-        $homeBoost = 1.0 + ($hFact / $norm(999)) * 0.30;
-
-        // lambda finali (base Serie A = 1.28 gol/squadra/partita)
-        $homeLambda = 1.28 * $homeRatio * $homeBoost;
-        $awayLambda = 1.28 * $awayRatio;
-
-        // clamp realistico
-        $homeLambda = max(0.3, min(2.5, $homeLambda));
-        $awayLambda = max(0.3, min(2.5, $awayLambda));
-
-        // Poisson sampling
-        $poissonRandom = static function (float $lambda): int {
-            $L = exp(-$lambda);
-            $p = 1.0;
-            $k = 0;
-            do {
-                $k++;
-                $p *= mt_rand(0, PHP_INT_MAX) / PHP_INT_MAX;
-            } while ($p > $L);
-            return $k - 1;
-        };
-
-        // scarto massimo basato sulla differenza di forza
-        $strengthDiff = abs($hAtk - $aAtk) / $norm(999); // 0.0 → 1.0
-        $maxDiff = (int) round(2 + $strengthDiff * 5); // min 2, max 7
-        $goalsHome = min(8, $poissonRandom($homeLambda));
-        $goalsAway = min(8, $poissonRandom($awayLambda));
-
-        $diff = abs($goalsHome - $goalsAway);
-        if ($diff > $maxDiff) {
-            if ($goalsHome > $goalsAway) $goalsHome = $goalsAway + $maxDiff;
-            else $goalsAway = $goalsHome + $maxDiff;
+        if ($score >= 0.7) {
+            $gol1 = self::pesoRand(3, 7);
+            $gol2 = self::pesoRand(0, max(0, $gol1 - 3));
+        } elseif ($score >= 0.45) {
+            $gol1 = self::pesoRand(2, 6);
+            $gol2 = self::pesoRand(0, max(0, $gol1 - 2));
+        } elseif ($score >= 0.25) {
+            $gol1 = self::pesoRand(1, 5);
+            $gol2 = self::pesoRand(0, max(0, $gol1 - 1));
+        } elseif ($score >= 0.10) {
+            $gol1 = self::pesoRand(0, 4);
+            $gol2 = self::pesoRand(0, $gol1);
+        } elseif ($score >= 0.03) {
+            $gol1 = self::pesoRand(0, 3);
+            $gol2 = self::pesoRand(0, $gol1 + 1);
+        } elseif ($score >= -0.03) {
+            $gol1 = self::pesoRand(0, 3);
+            $gol2 = self::pesoRand(0, 3);
+        } elseif ($score >= -0.10) {
+            $gol2 = self::pesoRand(0, 3);
+            $gol1 = self::pesoRand(0, $gol2 + 1);
+        } elseif ($score >= -0.25) {
+            $gol2 = self::pesoRand(0, 4);
+            $gol1 = self::pesoRand(0, $gol2);
+        } elseif ($score >= -0.45) {
+            $gol2 = self::pesoRand(1, 5);
+            $gol1 = self::pesoRand(0, max(0, $gol2 - 1));
+        } elseif ($score >= -0.70) {
+            $gol2 = self::pesoRand(2, 6);
+            $gol1 = self::pesoRand(0, max(0, $gol2 - 2));
+        } else {
+            $gol2 = self::pesoRand(3, 7);
+            $gol1 = self::pesoRand(0, max(0, $gol2 - 3));
         }
 
         return [
-            'score_home' => $goalsHome,
-            'score_away' => $goalsAway,
-            'status' => 1,
+            'score_home' => $gol1,
+            'score_away' => $gol2,
+            'status'     => 1,
         ];
     }
 
