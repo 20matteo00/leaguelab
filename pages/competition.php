@@ -76,6 +76,14 @@ if ($action == 'continue') {
                 case 'hall_of_fame':
                     Standings::renderHallOfFame($id);
                     break;
+
+                case 'all_time_markers':
+                    Markers::renderAllTimeMarkers($id);
+                    break;
+
+                case 'head_to_head':
+                    Matches::renderMatchesByTeamsAndComp($id);
+                    break;
                 default:
                     break;
             }

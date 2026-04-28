@@ -94,6 +94,14 @@ class QueryBuilder
         return $this;
     }
 
+    // WHERE RAW
+    public function whereRaw(string $sql, array $params = []): self
+    {
+        $this->where[] = $sql;
+        $this->params = array_merge($this->params, $params);
+        return $this;
+    }
+
     // 📊 ORDER BY
     public function orderBy(string $column, string $direction = 'ASC'): self
     {

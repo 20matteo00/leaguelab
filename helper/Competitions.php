@@ -97,7 +97,7 @@ class Competitions
             <?php endif; ?>
 
             <span class="<?= $class ?>"><?= htmlspecialchars($comp['name']) ?></span>
-            r
+            
             <?php if ($country && !empty($comp['country'])): ?>
                 <img
                     src="https://flagcdn.com/16x12/<?= strtolower($comp['country']) ?>.png"
