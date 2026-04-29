@@ -305,8 +305,7 @@ class Matches
                                 if ($match['score_home'] > $match['score_away']) {
                                     $class = 'success';
                                     $esito = '1';
-                                }
-                                elseif ($match['score_home'] < $match['score_away']) {
+                                } elseif ($match['score_home'] < $match['score_away']) {
                                     $class = 'danger';
                                     $esito = '2';
                                 }
@@ -351,33 +350,41 @@ class Matches
                                 <!-- BODY -->
                                 <div class="card-body">
                                     <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span>Giocate</span>
-                                            <strong><?= $stats['played'] ?></strong>
+                                            <span class="badge bg-secondary"><?= $stats['played'] ?></span>
                                         </li>
-                                        <li class="list-group-item d-flex justify-content-between">
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span>Vinte</span>
-                                            <strong class="text-success"><?= $stats['won'] ?></strong>
+                                            <span class="badge bg-success"><?= $stats['won'] ?></span>
                                         </li>
-                                        <li class="list-group-item d-flex justify-content-between">
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span>Pari</span>
-                                            <strong class="text-warning"><?= $stats['drawn'] ?></strong>
+                                            <span class="badge bg-warning text-dark"><?= $stats['drawn'] ?></span>
                                         </li>
-                                        <li class="list-group-item d-flex justify-content-between">
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span>Perse</span>
-                                            <strong class="text-danger"><?= $stats['lost'] ?></strong>
+                                            <span class="badge bg-danger"><?= $stats['lost'] ?></span>
                                         </li>
-                                        <li class="list-group-item d-flex justify-content-between">
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span>Gol fatti</span>
-                                            <strong class="text-success"><?= $stats['gf'] ?></strong>
+                                            <span class="badge bg-success"><?= $stats['gf'] ?></span>
                                         </li>
-                                        <li class="list-group-item d-flex justify-content-between">
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span>Gol subiti</span>
-                                            <strong class="text-danger"><?= $stats['ga'] ?></strong>
+                                            <span class="badge bg-danger"><?= $stats['ga'] ?></span>
                                         </li>
-                                        <li class="list-group-item d-flex justify-content-between">
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span>Differenza Reti</span>
-                                            <strong class="<?= $stats['gd'] >= 0 ? 'text-success' : 'text-danger' ?>"><?= $stats['gd'] ?></strong>
+                                            <span class="badge <?= $stats['gd'] >= 0 ? 'bg-success' : 'bg-danger' ?>">
+                                                <?= $stats['gd'] ?>
+                                            </span>
                                         </li>
                                     </ul>
                                 </div>

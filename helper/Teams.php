@@ -86,7 +86,7 @@ class Teams
         for ($i = 2; $i < count($parts); $i++) {
             $result[] = mb_substr($parts[$i], 0, 1);
         }
-        
+
         return implode('', $result);
     }
 
@@ -140,6 +140,53 @@ class Teams
             ]);
 
             $existingNames[] = $name;
+        }
+    }
+
+    public static function updateTeamsStats()
+    {
+        $teamsInDB = DB::table('teams')->select('id, name')->get();
+        $teams = Field::getTeams();
+
+        // mappa: nome normalizzato → id
+        $existingTeams = [];
+        foreach ($teamsInDB as $t) {
+            $existingTeams[strtolower(trim($t['name']))] = $t['id'];
+        }
+
+        foreach ($teams as $team) {
+
+            $name = strtolower(trim($team['name']));
+
+            // se non esiste nel DB → skip
+            if (!isset($existingTeams[$name])) {
+                continue;
+            }
+
+            $imagePath = null;
+
+            // 👉 controlla se esiste 'image'
+            if (!empty($team['image'])) {
+                $imagePath = $team['image'];
+            }
+            // 👉 fallback se il JSON usa 'images'
+            elseif (!empty($team['images']['logo'])) {
+                $imagePath = $team['images']['logo'];
+            }
+
+            $images = $imagePath ? ['logo' => $imagePath] : null;
+
+
+            $teamId = $existingTeams[$name];
+
+            DB::table('teams')
+                ->where('id', '=', $teamId)
+                ->update([
+                    'attack' => $team['attack'] ?? 1,
+                    'defense' => $team['defense'] ?? 1,
+                    'home_factor' => $team['home_factor'] ?? 1,
+                    'images' => $images ? json_encode($images) : null,
+                ]);
         }
     }
 

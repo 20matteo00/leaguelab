@@ -367,6 +367,11 @@ $linkExtra = [
 
             <!-- PAGINAZIONE -->
             <?php Pagination::renderPagination($pages, $page_num, 'teams', ['sorts' => $sortsParam, 'limit' => $limit]) ?>
+
+        <?php elseif ($action === 'import'): ?>
+            <?php Teams::importTeams() ?>
+        <?php elseif ($action === 'update'): ?>
+            <?php Teams::updateTeamsStats() ?>
         <?php endif; ?>
 
     </div>

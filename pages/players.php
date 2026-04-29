@@ -356,6 +356,9 @@ $sortsParam   = json_encode($sorts);
 
             <!-- PAGINAZIONE — passa anche sorts e limit -->
             <?php Pagination::renderPagination($pages, $page_num, 'players', ['sorts' => $sortsParam, 'limit' => $limit]) ?>
+
+        <?php elseif ($action === 'import'): ?>
+            <?php Players::importPlayers(); ?>
         <?php endif; ?>
 
     </div>
