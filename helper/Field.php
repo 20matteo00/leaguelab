@@ -44,4 +44,39 @@ class Field
 
         return json_decode($json, true) ?? [];
     }
+
+    private static function setFile($file, $data)
+    {
+        // Converte in JSON formattato
+        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+        // Scrive (sovrascrive) il file
+        file_put_contents($file, $json);
+    }
+
+    private static function sortArrayByField($array, $field, $ascending = true)
+    {
+        usort($array, function ($a, $b) use ($field, $ascending) {
+            $valA = $a[$field];
+            $valB = $b[$field];
+
+            if (is_numeric($valA)) $valA = (float)$valA;
+            if (is_numeric($valB)) $valB = (float)$valB;
+
+            if ($valA == $valB) return 0;
+
+            return $ascending
+                ? ($valA < $valB ? -1 : 1)
+                : ($valA > $valB ? -1 : 1);
+        });
+
+        return $array;
+    }
+
+    public static function reorderTeamsByName()
+    {
+        $teams = self::getTeams();
+        $teams = self::sortArrayByField($teams, 'name'); // <-- qui passi il campo
+        self::setFile(self::TEAMS_PATH, $teams);
+    }
 }
