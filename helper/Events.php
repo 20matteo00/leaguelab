@@ -38,33 +38,31 @@ class Events
     private static function processTeamEvents($matchId, $players, $goals)
     {
         $minutes = self::generateMinutes($goals);
-
         foreach ($minutes as $minute) {
-
             $scorer = self::pickScorer($players);
             if (!$scorer) continue;
 
-            // 🎯 rigore 10%
             $isPenalty = (rand(1, 100) <= 10);
+            $params = $isPenalty ? json_encode(['penalty' => true]) : null;
 
             DB::table('match_events')->insert([
                 'match_id'  => $matchId,
                 'player_id' => $scorer['id'],
-                'type'      => $isPenalty ? 3 : 1,
-                'minute'    => $minute
+                'type'      => 1, // sempre goal
+                'minute'    => $minute,
+                'params'    => $params,
             ]);
 
-            // 🤝 assist 70% (solo se non rigore)
+            // assist solo se non rigore
             if (!$isPenalty && rand(1, 100) <= 70) {
-
                 $assist = self::pickAssist($players, $scorer['id']);
-
                 if ($assist) {
                     DB::table('match_events')->insert([
                         'match_id'  => $matchId,
                         'player_id' => $assist['id'],
                         'type'      => 2,
-                        'minute'    => $minute
+                        'minute'    => $minute,
+                        'params'    => null,
                     ]);
                 }
             }

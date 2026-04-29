@@ -181,6 +181,8 @@ class Stats
                             $isRelegated = (bool) ($position > ($numTeams - $comp_level['relegation_spots']));
                             if ($isRelegated) $ico = '<i class="bi bi-arrow-down text-danger"></i>';
 
+                            $isChampion = (bool) ($position == 1 && $level == 1);
+                            if ($isChampion) $ico = '<i class="bi bi-trophy text-warning"></i>';
                             ?>
                             <tr>
                                 <td><?= $year ?></td>
@@ -216,6 +218,7 @@ class Stats
                             <th>Giornata</th>
                             <th>Incontro</th>
                             <th>Risultato</th>
+                            <th>Dettaglio</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -243,6 +246,11 @@ class Stats
                                 </td>
                                 <td class="text-<?= $class ?>">
                                     <?= $match['score_home'] ?> - <?= $match['score_away'] ?>
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2" title="Visualizza Incontro">👁️</a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

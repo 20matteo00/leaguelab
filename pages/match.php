@@ -77,7 +77,7 @@ $logo   = $images['logo'] ?? null;
             <?php
             $events = DB::table('match_events')
                 ->where('match_id', '=', $match['id'])
-                ->whereIn('type', [1, 3])
+                ->where('type', '=', 1)
                 ->orderBy('minute')
                 ->get();
             $homeScore = 0;
@@ -93,6 +93,10 @@ $logo   = $images['logo'] ?? null;
                     $player = DB::table('players')->where('id', '=', $event['player_id'])->first();
                     $teamId = $player['team_id'];
                     $isHome = $teamId == $match['team_home_id'];
+
+                    $params = json_decode($event['params'] ?? '[]', true);
+                    $isPenalty = $params['penalty'] ?? null;
+
                     if ($isHome) $homeScore++;
                     else $awayScore++;
 
@@ -115,7 +119,7 @@ $logo   = $images['logo'] ?? null;
                                 <span>⚽</span>
                                 <div>
                                     <?php Players::renderPlayers($event['player_id']) ?>
-                                    <?php if ($event['type'] == 3): ?>
+                                    <?php if ($isPenalty): ?>
                                         <span class="text-muted small">(R.)</span>
                                     <?php endif; ?>
                                     <?php Teams::renderTeams($teamId, 'px-2 rounded-pill d-inline-block small') ?>
@@ -143,7 +147,7 @@ $logo   = $images['logo'] ?? null;
                                 <div class="text-end">
                                     <?php Teams::renderTeams($teamId, 'px-2 rounded-pill d-inline-block small') ?>
                                     <?php Players::renderPlayers($event['player_id']) ?>
-                                    <?php if ($event['type'] == 3): ?>
+                                    <?php if ($isPenalty): ?>
                                         <span class="text-muted small">(R.)</span>
                                     <?php endif; ?>
                                     <?php if ($assistPlayer): ?>
