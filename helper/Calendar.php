@@ -294,8 +294,18 @@ class Calendar
 
     public static function getForzaEffettiva(array $strengthHome, array $strengthAway): array
     {
-        $forzaHome = min(999, $strengthHome['attack'] * $strengthHome['home_boost'] * 0.6 + (999 - $strengthAway['defense']) * 0.4);
-        $forzaAway = min(999, $strengthAway['attack']                               * 0.6 + (999 - $strengthHome['defense']) * 0.4);
+        // Forza offensiva: attacco di chi attacca vs difesa di chi difende
+        $offHome = $strengthHome['attack']  * $strengthHome['home_boost'];
+        $offAway = $strengthAway['attack'];
+
+        // Forza difensiva: quanto freni l'avversario (alta difesa = freni di più)
+        $defHome = $strengthHome['defense'];
+        $defAway = $strengthAway['defense'];
+
+        // Score finale: attacco proprio * 0.6 + difesa propria * 0.4
+        // (la difesa contribuisce positivamente alla propria forza, non negativamente all'avversario)
+        $forzaHome = min(999, $offHome * 0.6 + $defHome * 0.4);
+        $forzaAway = min(999, $offAway * 0.6 + $defAway * 0.4);
 
         return [
             'forza_home' => $forzaHome,

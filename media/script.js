@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <input type="number" name="level_${lvl}_teams"
                                    class="form-control level-teams-input"
                                    data-level="${lvl}"
-                                   value="${numTeams}" min="2" max="64">
+                                   value="${numTeams}" min="2" max="80">
                         </div>
                         <div class="col-12 col-md-4">
                             <label class="form-label">

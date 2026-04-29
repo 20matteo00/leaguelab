@@ -151,7 +151,7 @@ class Stats
     {
         if (empty($team)) return;
         $stats = ['ciao'];
-        $seasons =  DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->get();
+        $seasons =  DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->where('status', '=', '2')->get();
         $seasons = array_column($seasons, 'id');
     ?>
         <?php if (!empty($stats)): ?>

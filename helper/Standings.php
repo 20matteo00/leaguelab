@@ -419,8 +419,11 @@ class Standings
         $seasons = DB::table('seasons')
             ->select('id')
             ->where('competition_id', '=', $compId)
+            ->where('status', '=', '2')
             ->get();
         $seasonIds = array_column($seasons, 'id');
+
+        if (empty($seasonIds)) return [];
 
         $matches = DB::table('matches')
             ->whereIn('season_id', $seasonIds)
@@ -530,6 +533,7 @@ class Standings
     {
         $seasons = DB::table('seasons')
             ->where('competition_id', '=', $compId)
+            ->where('status', '=', '2')
             ->orderBy('season_year')
             ->get();
 

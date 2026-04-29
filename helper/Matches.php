@@ -193,7 +193,7 @@ class Matches
         $teams = array_column($teams, 'team_id');
         $teams = Teams::orderTeamsByName($teams);
 
-        $seasons = DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->get();
+        $seasons = DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->where('status', '=', '2')->get();
         $seasons = array_column($seasons, 'id');
 
         $maxLevel = DB::table('competition_levels')
@@ -213,7 +213,7 @@ class Matches
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $validTeams = !empty($teamHome) && !empty($teamAway) && ($teamHome != $teamAway);
 
-            if ($validTeams) {
+            if ($validTeams && !empty($seasons)) {
                 $matches = self::getMatchesByTeamsComp($seasons, $teamHome, $teamAway, $location, $level, $order);
             }
         }

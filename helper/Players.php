@@ -56,35 +56,33 @@ class Players
         return $nome . ' ' . $cognome;
     }
 
-    private static function getRandomStats($i)
+    private static function getRandomStats($i, $team)
     {
-        $stats = [];
+        $teamStats = Teams::getTeamStats($team['id']);
+        $teamAtk = $teamStats['attack'];
+        $teamDef = $teamStats['defense'];
+
+        $randInRange = function (float $base): int {
+            $min = max(0, (int)$base - 100);
+            $max = min(999, (int)$base + 100);
+            return rand($min, $max);
+        };
+
         if ($i == 1) {
-            $stats = [
-                'position' => 1,
-                'attack' => rand(1, 250),
-                'defense' => rand(751, 1000),
-            ];
+            $position = 1;
         } elseif ($i <= 4) {
-            $stats = [
-                'position' => 2,
-                'attack' => rand(251, 500),
-                'defense' => rand(501, 750),
-            ];
+            $position = 2;
         } elseif ($i <= 8) {
-            $stats = [
-                'position' => 3,
-                'attack' => rand(501, 750),
-                'defense' => rand(251, 500),
-            ];
+            $position = 3;
         } else {
-            $stats = [
-                'position' => 4,
-                'attack' => rand(751, 1000),
-                'defense' => rand(1, 250),
-            ];
+            $position = 4;
         }
-        return $stats;
+
+        return [
+            'position' => $position,
+            'attack'   => $randInRange($teamAtk),
+            'defense'  => $randInRange($teamDef),
+        ];
     }
 
     private static function getRandomBirthDate()
@@ -163,7 +161,7 @@ class Players
                         ->first();
                 } while ($exists);
                 // 👉 QUI usi la TUA funzione
-                $stats = self::getRandomStats($i);
+                $stats = self::getRandomStats($i, $team);
                 DB::table('players')->insert([
                     'name'        => $name,
                     'team_id'     => $team['id'],
