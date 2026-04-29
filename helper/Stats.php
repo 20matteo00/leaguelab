@@ -150,52 +150,125 @@ class Stats
     private static function renderTeamHistoryByCompetition($compId, $team)
     {
         if (empty($team)) return;
-        $stats = ['ciao'];
         $seasons =  DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->where('status', '=', '2')->get();
         $seasons = array_column($seasons, 'id');
+        $bestYear = $badYear = [
+            'year' => 0,
+            'level' => 0,
+            'position' => 0,
+        ];
     ?>
-        <?php if (!empty($stats)): ?>
-            <div class="table-responsive my-5">
-                <table class="table table-hover align-middle shadow-sm text-center">
-                    <thead class="table-dark">
+        <div class="table-responsive my-5">
+            <table class="table table-hover align-middle shadow-sm text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Stagione</th>
+                        <th>Livello</th>
+                        <th>Posizione</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($seasons as $season): ?>
+                        <?php
+                        $level = DB::table('season_teams')->select('level')->where('season_id', '=', $season)->where('team_id', '=', $team)->first()['level'];
+                        $year = DB::table('seasons')->select('season_year')->where('id', '=', $season)->first()['season_year'];
+                        $position = Standings::getPositionTeamBySeason($team, $season, $level);
+
+                        $bestYear = self::calculateYear($bestYear, $year, $level, $position, 'best');
+                        $badYear = self::calculateYear($badYear, $year, $level, $position, 'worst');
+
+                        $numTeams = DB::table('season_teams')->where('season_id', '=', $season)->where('level', '=', $level)->count();
+                        $comp_level = DB::table('competition_levels')->select('relegation_spots, promotion_spots')->where('competition_id', '=', $compId)->where('level', '=', $level)->first();
+                        $ico = '';
+
+                        $isPromoted = (bool) ($position <= ($comp_level['promotion_spots']));
+                        if ($isPromoted) $ico = '<i class="bi bi-arrow-up text-success"></i>';
+
+                        $isRelegated = (bool) ($position > ($numTeams - $comp_level['relegation_spots']));
+                        if ($isRelegated) $ico = '<i class="bi bi-arrow-down text-danger"></i>';
+
+                        $isChampion = (bool) ($position == 1 && $level == 1);
+                        if ($isChampion) $ico = '<i class="bi bi-trophy text-warning"></i>';
+                        ?>
                         <tr>
-                            <th>Stagione</th>
-                            <th>Livello</th>
-                            <th>Posizione</th>
+                            <td><?= $year ?></td>
+                            <td><?= $level ?></td>
+                            <td><?= $position ?> <?= $ico ?></td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($seasons as $season): ?>
-                            <?php
-                            $level = DB::table('season_teams')->select('level')->where('season_id', '=', $season)->where('team_id', '=', $team)->first()['level'];
-                            $year = DB::table('seasons')->select('season_year')->where('id', '=', $season)->first()['season_year'];
-                            $position = Standings::getPositionTeamBySeason($team, $season, $level);
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
 
-                            $numTeams = DB::table('season_teams')->where('season_id', '=', $season)->where('level', '=', $level)->count();
-                            $comp_level = DB::table('competition_levels')->select('relegation_spots, promotion_spots')->where('competition_id', '=', $compId)->where('level', '=', $level)->first();
-                            $ico = '';
-
-                            $isPromoted = (bool) ($position <= ($comp_level['promotion_spots']));
-                            if ($isPromoted) $ico = '<i class="bi bi-arrow-up text-success"></i>';
-
-                            $isRelegated = (bool) ($position > ($numTeams - $comp_level['relegation_spots']));
-                            if ($isRelegated) $ico = '<i class="bi bi-arrow-down text-danger"></i>';
-
-                            $isChampion = (bool) ($position == 1 && $level == 1);
-                            if ($isChampion) $ico = '<i class="bi bi-trophy text-warning"></i>';
-                            ?>
-                            <tr>
-                                <td><?= $year ?></td>
-                                <td><?= $level ?></td>
-                                <td><?= $position ?> <?= $ico ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+            <div class="row g-4">
+                <?php self::renderYearCard($bestYear, 'best'); ?>
+                <?php self::renderYearCard($badYear, 'worst'); ?>
             </div>
-        <?php else: ?>
-            <?php Alert::generateAlert('Nessuna statistica trovata per questa squadra in questa competizione', 'warning', 'Nessuna statistica trovata') ?>
-        <?php endif; ?>
+    <?php
+    }
+
+    private static function calculateYear($current, $year, $level, $position, $mode = 'best')
+    {
+        if ($current['year'] == 0) {
+            return compact('year', 'level', 'position');
+        }
+
+        $isBetter = false;
+
+        if ($mode === 'best') {
+            $isBetter =
+                $level < $current['level'] ||
+                ($level == $current['level'] && $position <= $current['position']);
+        } else { // worst
+            $isBetter =
+                $level > $current['level'] ||
+                ($level == $current['level'] && $position >= $current['position']);
+        }
+
+        return $isBetter
+            ? compact('year', 'level', 'position')
+            : $current;
+    }
+
+    private static function renderYearCard($data, $type = 'best')
+    {
+        $isBest = $type === 'best';
+
+        $title = $isBest ? 'Miglior Anno' : 'Peggior Anno';
+        $icon = $isBest ? 'bi-graph-up-arrow' : 'bi-graph-down-arrow';
+        $color = $isBest ? 'success' : 'danger';
+
+        $year = $data['year'] ?? '-';
+        $level = $data['level'] ?? '-';
+        $position = $data['position'] ?? '-';
+
+    ?>
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-<?= $color ?> bg-gradient text-white d-flex justify-content-between align-items-center">
+                    <span><i class="bi <?= $icon ?>"></i> <?= $title ?></span>
+                    <span class="badge bg-light text-<?= $color ?> fw-bold">
+                        <?= $year ?>
+                    </span>
+                </div>
+
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Livello</span>
+                        <span class="fw-bold fs-5 text-<?= $color ?>">
+                            <?= $level ?>
+                        </span>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Posizione</span>
+                        <span class="badge bg-<?= $color ?> fs-6 px-3 py-2">
+                            <?= $position ?>°
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
     <?php
     }
 

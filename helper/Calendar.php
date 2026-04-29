@@ -71,7 +71,7 @@ class Calendar
                     <button type="submit" name="action" value="delete_level" class="btn btn-danger fw-bold p-3 w-100">✕ Elimina Livello</button>
                 </div>
             <?php endif; ?>
-            <div class="row g-4">
+            <div class="row g-4 mb-5 pb-5">
                 <?php foreach ($grouped as $round => $roundMatches): ?>
                     <?php $roundIdsStr = implode(',', array_column($roundMatches, 'id')); ?>
                     <div class="col-12 col-lg-6">
