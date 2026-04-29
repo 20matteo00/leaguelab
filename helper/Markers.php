@@ -84,9 +84,9 @@ class Markers
                         <tr>
                             <td class="text-muted"><?= $pos++ ?></td>
                             <td class="text-start">
-                                <?= Players::renderPlayers($playerId, 'fw-semibold rounded-pill d-inline-block') ?>
+                                <?php Players::renderPlayers($playerId, 'fw-semibold rounded-pill d-inline-block') ?>
                             </td>
-                            <td class="text-start"><?= Teams::renderTeams($teamId, 'fw-semibold px-2 rounded-pill d-inline-block') ?></td>
+                            <td class="text-start"><?php Teams::renderTeams($teamId, 'fw-semibold px-2 rounded-pill d-inline-block') ?></td>
                             <td><?= array_column($positions, 'name', 'code')[$position] ?? '' ?></td>
                             <td><?= $goal . " (" . $marker['rigori'] . ")" ?></td>
                             <td><?= $marker['assist'] ?></td>
@@ -225,10 +225,10 @@ class Markers
                                         <tr>
                                             <td class="text-muted"><?= $pos++ ?></td>
                                             <td class="text-start">
-                                                <?= Players::renderPlayers($playerId, 'fw-semibold rounded-pill d-inline-block') ?>
+                                                <?php Players::renderPlayers($playerId, 'fw-semibold rounded-pill d-inline-block') ?>
                                             </td>
                                             <td class="text-start">
-                                                <?= Teams::renderTeams($teamId, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
+                                                <?php Teams::renderTeams($teamId, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
                                             </td>
                                             <td><?= $posMap[$position] ?? '' ?></td>
                                             <td><?= $goal . ' (' . $marker['rigori'] . ')' ?></td>

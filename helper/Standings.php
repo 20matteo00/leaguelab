@@ -193,7 +193,7 @@ class Standings
                         <tr>
                             <td class="<?= $class ?>"><?= $pos++ ?></td>
                             <td class="text-start">
-                                <?= Teams::renderTeams($teamId, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
+                                <?php Teams::renderTeams($teamId, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
                             </td>
                             <?php if ($countEdition): ?>
                                 <td><?= $s['editions'] ?? 0 ?></td>
@@ -367,7 +367,7 @@ class Standings
                                 <?php if ($teamId === null): ?>
                                     <span class="text-muted small">—</span>
                                 <?php else: ?>
-                                    <?= Teams::renderTeams($teamId, 'fw-semibold px-2 rounded-pill d-inline-block', false, false, ['abbr_name' => 3]) ?>
+                                    <?php Teams::renderTeams($teamId, 'fw-semibold px-2 rounded-pill d-inline-block', false, false, ['abbr_name' => 3]) ?>
                                 <?php endif; ?>
                             </td>
                         <?php endforeach; ?>
@@ -630,7 +630,7 @@ class Standings
                                                 <div class="d-flex flex-column align-items-center" style="flex:1">
                                                     <?php if (isset($top3[1])): ?>
                                                         <div class="mb-1">
-                                                            <?= Teams::renderTeams($top3[1]['team_id'], 'fw-semibold px-2 rounded-pill d-inline-block small') ?>
+                                                            <?php Teams::renderTeams($top3[1]['team_id'], 'fw-semibold px-2 rounded-pill d-inline-block small') ?>
                                                         </div>
                                                         <div class="w-100 rounded-top d-flex flex-column align-items-center justify-content-center py-2"
                                                             style="background:<?= $medalColors[2]['bg'] ?>;color:<?= $medalColors[2]['text'] ?>;height:100px">
@@ -644,7 +644,7 @@ class Standings
                                                 <div class="d-flex flex-column align-items-center" style="flex:1">
                                                     <?php if (isset($top3[0])): ?>
                                                         <div class="mb-1">
-                                                            <?= Teams::renderTeams($top3[0]['team_id'], 'fw-semibold px-2 rounded-pill d-inline-block small') ?>
+                                                            <?php Teams::renderTeams($top3[0]['team_id'], 'fw-semibold px-2 rounded-pill d-inline-block small') ?>
                                                         </div>
                                                         <div class="w-100 rounded-top d-flex flex-column align-items-center justify-content-center py-2"
                                                             style="background:<?= $medalColors[1]['bg'] ?>;color:<?= $medalColors[1]['text'] ?>;height:140px">
@@ -658,7 +658,7 @@ class Standings
                                                 <div class="d-flex flex-column align-items-center" style="flex:1">
                                                     <?php if (isset($top3[2])): ?>
                                                         <div class="mb-1">
-                                                            <?= Teams::renderTeams($top3[2]['team_id'], 'fw-semibold px-2 rounded-pill d-inline-block small') ?>
+                                                            <?php Teams::renderTeams($top3[2]['team_id'], 'fw-semibold px-2 rounded-pill d-inline-block small') ?>
                                                         </div>
                                                         <div class="w-100 rounded-top d-flex flex-column align-items-center justify-content-center py-2"
                                                             style="background:<?= $medalColors[3]['bg'] ?>;color:<?= $medalColors[3]['text'] ?>;height:70px">
@@ -715,7 +715,7 @@ class Standings
                                         <tr>
                                             <td class="text-muted"><?= $pos++ ?></td>
                                             <td class="text-start">
-                                                <?= Teams::renderTeams($tid, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
+                                                <?php Teams::renderTeams($tid, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
                                             </td>
                                             <td><strong><?= $m[1] ?: '-' ?></strong></td>
                                             <td><?= $m[2] ?: '-' ?></td>
@@ -779,7 +779,7 @@ class Standings
                         <tr>
                             <td class="text-muted"><?= $pos++ ?></td>
                             <td class="text-start">
-                                <?= Teams::renderTeams($teamId, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
+                                <?php Teams::renderTeams($teamId, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
                             </td>
                             <td><?= $r['attack'] ?></td>
                             <td><?= $r['defense'] ?></td>
@@ -799,5 +799,26 @@ class Standings
             </table>
         </div>
 <?php
+    }
+
+    public static function getPositionTeamBySeason($teamId, $seasonId, $level)
+    {
+        $matches = DB::table('matches')->where('season_id', '=', $seasonId)->where('level', '=', $level)->get();
+        $teams = DB::table('season_teams')->select('team_id')->where('season_id', '=', $seasonId)->where('level', '=', $level)->get();
+        $teams = array_column($teams, 'team_id');
+        $finalteams = [];
+        foreach ($teams as $team) {
+            $finalteams[$team] =  DB::table('teams')->select('name')->where('id', '=', $team)->first()['name'];
+        }
+        $results = self::buildStandings($matches, $finalteams, 'total');
+
+        $position = 1;
+        foreach ($results as $id => $team) {
+            if ($id == $teamId) {
+                break;
+            }
+            $position++;
+        }
+        return $position;
     }
 }

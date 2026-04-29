@@ -22,7 +22,7 @@ $logo   = $images['logo'] ?? null;
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body text-center">
                     <div class="fw-bold mb-1">Competizione</div>
-                    <?= Competitions::renderCompetitions($competition['id'], 'fw-semibold') ?>
+                    <?php Competitions::renderCompetitions($competition['id'], 'fw-semibold') ?>
                 </div>
             </div>
         </a>
@@ -51,7 +51,7 @@ $logo   = $images['logo'] ?? null;
     <!-- SCOREBOARD -->
     <div class="row align-items-center justify-content-center my-4 g-2">
         <div class="col-5 text-end">
-            <?= Teams::renderTeams($match['team_home_id'], 'h5 fw-semibold px-3 py-2 rounded-pill d-inline-block') ?>
+            <?php Teams::renderTeams($match['team_home_id'], 'h5 fw-semibold px-3 py-2 rounded-pill d-inline-block') ?>
         </div>
         <div class="col-2 text-center">
             <div class="display-6 fw-bold">
@@ -61,7 +61,7 @@ $logo   = $images['logo'] ?? null;
             </div>
         </div>
         <div class="col-5 text-start">
-            <?= Teams::renderTeams($match['team_away_id'], 'h5 fw-semibold px-3 py-2 rounded-pill d-inline-block') ?>
+            <?php Teams::renderTeams($match['team_away_id'], 'h5 fw-semibold px-3 py-2 rounded-pill d-inline-block') ?>
         </div>
         <div class="text-center">Incontro <span class="badge bg-<?= Matches::$status[$match['status']]['badge'] ?>"><?= Matches::$status[$match['status']]['label'] ?></span></div>
     </div>
@@ -114,11 +114,11 @@ $logo   = $images['logo'] ?? null;
                                 <span class="text-muted small text-nowrap"><?= $event['minute'] ?>'</span>
                                 <span>⚽</span>
                                 <div>
-                                    <?= Players::renderPlayers($event['player_id']) ?>
+                                    <?php Players::renderPlayers($event['player_id']) ?>
                                     <?php if ($event['type'] == 3): ?>
                                         <span class="text-muted small">(R.)</span>
                                     <?php endif; ?>
-                                    <?= Teams::renderTeams($teamId, 'px-2 rounded-pill d-inline-block small') ?>
+                                    <?php Teams::renderTeams($teamId, 'px-2 rounded-pill d-inline-block small') ?>
                                     <?php if ($assistPlayer): ?>
                                         <div class="text-muted small">(assist <?= htmlspecialchars($assistPlayer['name']) ?>)</div>
                                     <?php endif; ?>
@@ -141,8 +141,8 @@ $logo   = $images['logo'] ?? null;
                             </div>
                             <div class="col-5 d-flex align-items-center justify-content-end gap-2">
                                 <div class="text-end">
-                                    <?= Teams::renderTeams($teamId, 'px-2 rounded-pill d-inline-block small') ?>
-                                    <?= Players::renderPlayers($event['player_id']) ?>
+                                    <?php Teams::renderTeams($teamId, 'px-2 rounded-pill d-inline-block small') ?>
+                                    <?php Players::renderPlayers($event['player_id']) ?>
                                     <?php if ($event['type'] == 3): ?>
                                         <span class="text-muted small">(R.)</span>
                                     <?php endif; ?>

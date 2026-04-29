@@ -327,9 +327,9 @@ $sortsParam   = json_encode($sorts);
                                         class="img-fluid rounded img-sm">
                                 </td>
                                 <td class="fw-semibold">
-                                    <?= Players::renderPlayers($player['id'], 'p-2 rounded-pill', true) ?>
+                                    <?php Players::renderPlayers($player['id'], 'p-2 rounded-pill', true) ?>
                                 </td>
-                                <td><?= Teams::renderTeams($player['team_id'], 'p-2 rounded-pill', true) ?></td>
+                                <td><?php Teams::renderTeams($player['team_id'], 'p-2 rounded-pill', true) ?></td>
                                 <td><?= array_column($positions, 'name', 'code')[$player['position']] ?? '' ?></td>
                                 <td><?= $player['number'] ?></td>
                                 <td><?= Players::getEta($player['birth_date']) ?></td>
@@ -355,7 +355,7 @@ $sortsParam   = json_encode($sorts);
             </div>
 
             <!-- PAGINAZIONE — passa anche sorts e limit -->
-            <?= Pagination::renderPagination($pages, $page_num, 'players', ['sorts' => $sortsParam, 'limit' => $limit]) ?>
+            <?php Pagination::renderPagination($pages, $page_num, 'players', ['sorts' => $sortsParam, 'limit' => $limit]) ?>
         <?php endif; ?>
 
     </div>

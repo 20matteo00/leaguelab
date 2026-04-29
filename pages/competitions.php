@@ -635,7 +635,7 @@ $linkExtra = [
                                         class="img-fluid rounded img-sm">
                                 </td>
                                 <td class="fw-semibold">
-                                    <?= Competitions::renderCompetitions($competition['id'], 'p-2 rounded-pill', true) ?>
+                                    <?php Competitions::renderCompetitions($competition['id'], 'p-2 rounded-pill', true) ?>
                                 </td>
                                 <td>
                                     <?= array_column($modality, 'name', 'code')[$competition['modality']] ?? '' ?>
@@ -674,7 +674,7 @@ $linkExtra = [
                 </table>
             </div>
 
-            <?= Pagination::renderPagination($pages, $page_num, 'competitions', ['sorts' => $sortsParam, 'limit' => $limit]) ?>
+            <?php Pagination::renderPagination($pages, $page_num, 'competitions', ['sorts' => $sortsParam, 'limit' => $limit]) ?>
 
         <?php endif; ?>
 

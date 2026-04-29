@@ -87,7 +87,7 @@ class Calendar
                                             <div class="row align-items-center text-center">
                                                 <!-- Home -->
                                                 <div class="col-5 text-end">
-                                                    <?= Teams::renderTeams($match['home_team'], 'fw-semibold px-2 rounded-pill d-inline-block') ?>
+                                                    <?php Teams::renderTeams($match['home_team'], 'fw-semibold px-2 rounded-pill d-inline-block') ?>
                                                 </div>
                                                 <!-- VS -->
                                                 <div class="col-2 text-muted small">
@@ -95,7 +95,7 @@ class Calendar
                                                 </div>
                                                 <!-- Away -->
                                                 <div class="col-5 text-start">
-                                                    <?= Teams::renderTeams($match['away_team'], 'fw-semibold px-2 rounded-pill d-inline-block') ?>
+                                                    <?php Teams::renderTeams($match['away_team'], 'fw-semibold px-2 rounded-pill d-inline-block') ?>
                                                 </div>
                                             </div>
                                         </div>
@@ -386,7 +386,7 @@ class Calendar
                         <th class="text-start">C ↓ / T →</th>
                         <?php foreach ($teams as $awayId => $awayName): ?>
                             <th>
-                                <?= Teams::renderTeams(
+                                <?php Teams::renderTeams(
                                     $awayId,
                                     'fw-semibold px-2 rounded-pill d-inline-block',
                                     false,
@@ -401,7 +401,7 @@ class Calendar
                     <?php foreach ($teams as $homeId => $homeName): ?>
                         <tr>
                             <td class="text-start">
-                                <?= Teams::renderTeams($homeId, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
+                                <?php Teams::renderTeams($homeId, 'fw-semibold px-2 rounded-pill d-inline-block') ?>
                             </td>
                             <?php foreach ($teams as $awayId => $awayName): ?>
                                 <?php if ($homeId === $awayId): ?>

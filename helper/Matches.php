@@ -227,7 +227,7 @@ class Matches
                             <option value="">-- Scegli --</option>
                             <?php foreach ($teams as $key => $team): ?>
                                 <option value="<?= $key ?>" <?= ($key == $teamHome) ? 'selected' : '' ?>>
-                                    <?= Teams::renderTeams($key) ?>
+                                    <?php Teams::renderTeams($key) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -239,7 +239,7 @@ class Matches
                             <option value="">-- Scegli --</option>
                             <?php foreach ($teams as $key => $team): ?>
                                 <option value="<?= $key ?>" <?= ($key == $teamAway) ? 'selected' : '' ?>>
-                                    <?= Teams::renderTeams($key) ?>
+                                    <?php Teams::renderTeams($key) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -317,9 +317,9 @@ class Matches
                                     <td><?= $match['round'] ?></td>
                                     <td>
                                         <div>
-                                            <?= Teams::renderTeams($match['team_home_id'], 'px-2 rounded-pill d-inline-block small') ?>
+                                            <?php Teams::renderTeams($match['team_home_id'], 'px-2 rounded-pill d-inline-block small') ?>
                                             Vs
-                                            <?= Teams::renderTeams($match['team_away_id'], 'px-2 rounded-pill d-inline-block small') ?>
+                                            <?php Teams::renderTeams($match['team_away_id'], 'px-2 rounded-pill d-inline-block small') ?>
                                         </div>
                                     </td>
                                     <td class="text-<?= $class ?>">
@@ -345,7 +345,7 @@ class Matches
                                 <!-- HEADER -->
                                 <div class="card-header bg-dark text-white text-center">
                                     <strong>
-                                        <?= Teams::renderTeams($stats['team_id'], 'px-2 rounded-pill d-inline-block small') ?>
+                                        <?php Teams::renderTeams($stats['team_id'], 'px-2 rounded-pill d-inline-block small') ?>
                                     </strong>
                                 </div>
                                 <!-- BODY -->

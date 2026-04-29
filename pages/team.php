@@ -19,7 +19,7 @@ $team = DB::table('teams')->where('id', '=', $id)->first();
             </div>
             <div class="col">
                 <div class="d-flex justify-content-center align-items-center h-100">
-                    <?= Teams::renderTeams($team['id'], 'p-2 rounded-pill h1 w-100 text-center fw-bold me-2', true) ?>
+                    <?php Teams::renderTeams($team['id'], 'p-2 rounded-pill h1 w-100 text-center fw-bold me-2', true) ?>
                 </div>
             </div>
         </div>
@@ -118,7 +118,7 @@ $team = DB::table('teams')->where('id', '=', $id)->first();
                                     class="img-fluid rounded img-sm">
                             </td>
                             <td class="fw-semibold">
-                                <?= Players::renderPlayers($player['id'], 'p-2 rounded-pill', true) ?>
+                                <?php Players::renderPlayers($player['id'], 'p-2 rounded-pill', true) ?>
                             </td>
                             <td><?= array_column($positions, 'name', 'code')[$player['position']] ?? '' ?></td>
                             <td><?= $player['number'] ?></td>

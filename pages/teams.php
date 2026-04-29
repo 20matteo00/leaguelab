@@ -330,7 +330,7 @@ $linkExtra = [
                                         class="img-fluid rounded img-sm">
                                 </td>
                                 <td class="fw-semibold">
-                                    <?= Teams::renderTeams($team['id'], 'p-2 rounded-pill', true) ?>
+                                    <?php Teams::renderTeams($team['id'], 'p-2 rounded-pill', true) ?>
                                 </td>
                                 <td><span class="badge bg-danger"><?= $team['attack'] ?></span></td>
                                 <td><span class="badge bg-primary"><?= $team['defense'] ?></span></td>
@@ -366,7 +366,7 @@ $linkExtra = [
             </div>
 
             <!-- PAGINAZIONE -->
-            <?= Pagination::renderPagination($pages, $page_num, 'teams', ['sorts' => $sortsParam, 'limit' => $limit]) ?>
+            <?php Pagination::renderPagination($pages, $page_num, 'teams', ['sorts' => $sortsParam, 'limit' => $limit]) ?>
         <?php endif; ?>
 
     </div>

@@ -51,12 +51,12 @@ if ($action == 'continue') {
                 </div>
             <?php endif; ?>
             <div class="col">
-                <?= Competitions::renderCompetitions($competition['id'], 'p-2 rounded-pill h1 fw-bold', true) ?>
+                <?php Competitions::renderCompetitions($competition['id'], 'p-2 rounded-pill h1 fw-bold', true) ?>
             </div>
         </div>
         <hr>
 
-        <?= Competitions::renderMenu($baseUrl, $mode) ?>
+        <?php Competitions::renderMenu($baseUrl, $mode) ?>
 
 
         <div id="content">
@@ -84,6 +84,11 @@ if ($action == 'continue') {
                 case 'head_to_head':
                     Matches::renderMatchesByTeamsAndComp($id);
                     break;
+
+                case 'stats':
+                    Stats::renderGlobalMenu($baseUrl);
+                    $subaction = $_GET['subaction'] ?? 'overview';
+                    Stats::renderGlobalStats($id, $subaction);
                 default:
                     break;
             }
@@ -91,6 +96,6 @@ if ($action == 'continue') {
         </div>
 
     <?php else: ?>
-        <?= Alert::generateAlert('Nessuna competizione trovata con id= ' . $id, 'danger', 'Competizione non trovata', false) ?>
+        <?php Alert::generateAlert('Nessuna competizione trovata con id= ' . $id, 'danger', 'Competizione non trovata', false) ?>
     <?php endif; ?>
 </div>

@@ -53,7 +53,7 @@ $isEndedSeason = $statusSeason == 2 ? true : false;
                     </div>
                 <?php endif; ?>
                 <div class="col">
-                    <?= Competitions::renderCompetitions($competition['id'], 'p-2 rounded-pill h1 fw-bold', true) ?>
+                    <?php Competitions::renderCompetitions($competition['id'], 'p-2 rounded-pill h1 fw-bold', true) ?>
                 </div>
             </div>
         </a>
