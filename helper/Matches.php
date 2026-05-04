@@ -294,6 +294,7 @@ class Matches
                                 <th>Incontro</th>
                                 <th>Risultato</th>
                                 <th>Esito</th>
+                                <th>Dettaglio</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -325,6 +326,11 @@ class Matches
                                         <?= $match['score_home'] ?> - <?= $match['score_away'] ?>
                                     </td>
                                     <td class="text-<?= $class ?>"><?= $esito ?></td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2" title="Visualizza Incontro">👁️</a>
+                                        </div>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>

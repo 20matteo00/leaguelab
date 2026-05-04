@@ -255,4 +255,22 @@ class Seasons
         </div>
 <?php
     }
+
+    public static function getPreviousSeasonById($seasonId)
+    {
+        $currentSeason =  DB::table('seasons')->where('id', '=', $seasonId)->first();
+        return DB::table('seasons')
+            ->where('competition_id', '=', $currentSeason['competition_id'])
+            ->where('season_year', '=', $currentSeason['season_year'] - 1)
+            ->first();
+    }
+
+    public static function getNextSeasonById($seasonId)
+    {
+        $currentSeason =  DB::table('seasons')->where('id', '=', $seasonId)->first();
+        return DB::table('seasons')
+            ->where('competition_id', '=', $currentSeason['competition_id'])
+            ->where('season_year', '=', $currentSeason['season_year'] + 1)
+            ->first();
+    }
 }

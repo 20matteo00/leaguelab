@@ -53,37 +53,31 @@ class Markers
         return self::computeMarkers($matchIds);
     }
 
-    private static function buildAllTimeMarkers($compId): array
+    private static function buildAllTimeMarkers($compId, $level): array
     {
         $seasonIds = array_column(
-            DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->get(),
+            DB::table('seasons')
+                ->select('id')
+                ->where('competition_id', '=', $compId)
+                ->get(),
             'id'
         );
 
-        $compLevels = DB::table('competition_levels')
-            ->where('competition_id', '=', $compId)
-            ->orderBy('level')
-            ->get();
-        $levelNums = !empty($compLevels) ? array_column($compLevels, 'level') : [1];
+        if (empty($seasonIds)) return [];
 
-        $result = [];
-        foreach ($levelNums as $levelNum) {
-            $matchIds = array_column(
-                DB::table('matches')
-                    ->select('id')
-                    ->whereIn('season_id', $seasonIds)
-                    ->where('level', '=', $levelNum)
-                    ->get(),
-                'id'
-            );
+        // match SOLO di quel livello
+        $matchIds = array_column(
+            DB::table('matches')
+                ->select('id')
+                ->whereIn('season_id', $seasonIds)
+                ->where('level', '=', $level)
+                ->get(),
+            'id'
+        );
 
-            $scorers = self::computeMarkers($matchIds);
-            if (!empty($scorers)) {
-                $result[$levelNum] = $scorers;
-            }
-        }
+        if (empty($matchIds)) return [];
 
-        return $result;
+        return self::computeMarkers($matchIds);
     }
 
     private static function renderMarkersTable(array $scorers): void
@@ -130,47 +124,41 @@ class Markers
     <?php
     }
 
-    public static function renderMarkerStandings($seasonId, $level): void
+    public static function renderMarkerStandings($seasonId, $level, $minGoal = null): void
     {
         $scorers = self::getMarkersStandings($seasonId, $level);
+
+        if ($minGoal) {
+            $scorers = array_filter($scorers, function ($item) use ($minGoal) {
+                return $item['goal'] >= $minGoal;
+            });
+        }
+
         self::renderMarkersTable($scorers);
     }
 
-    public static function renderAllTimeMarkers($compId): void
+    public static function renderAllTimeMarkers($compId, $level, $minGoal = null): void
     {
-        $byLevel = self::buildAllTimeMarkers($compId);
+        $scorers = self::buildAllTimeMarkers($compId, $level);
 
-        if (empty($byLevel)) {
+        if (empty($scorers)) {
             echo '<p class="text-muted">Nessun dato disponibile.</p>';
             return;
         }
+
+        // filtro goal
+        if ($minGoal !== null) {
+            $scorers = array_filter($scorers, function ($item) use ($minGoal) {
+                return $item['goal'] >= $minGoal;
+            });
+        }
     ?>
         <div class="mb-4">
-            <h5 class="fw-bold mb-3">⚽ Marcatori All-Time</h5>
+            <h5 class="fw-bold mb-3">
+                ⚽ Marcatori All-Time - Livello <?= $level ?> - Con almeno <?= $minGoal ?> Goal
+            </h5>
 
-            <?php if (count($byLevel) > 1): ?>
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <?php foreach ($byLevel as $levelNum => $_): ?>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link <?= $levelNum === array_key_first($byLevel) ? 'active' : '' ?>"
-                                data-bs-toggle="tab"
-                                data-bs-target="#markers-alltime-<?= $levelNum ?>"
-                                type="button">
-                                Livello <?= $levelNum ?>
-                            </button>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php endif; ?>
-
-            <div class="tab-content">
-                <?php foreach ($byLevel as $levelNum => $scorers): ?>
-                    <div class="tab-pane fade <?= $levelNum === array_key_first($byLevel) ? 'show active' : '' ?>"
-                        id="markers-alltime-<?= $levelNum ?>">
-                        <?php self::renderMarkersTable($scorers) ?>
-                    </div>
-                <?php endforeach; ?>
-            </div>
+            <?php self::renderMarkersTable($scorers); ?>
         </div>
 <?php
     }

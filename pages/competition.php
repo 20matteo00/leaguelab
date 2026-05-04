@@ -5,14 +5,20 @@ if ($id === null) return;
 $competition = DB::table('competitions')->where('id', '=', $id)->first();
 $lastSeasonEnd = Seasons::getMaxSeasonEndByCompetition($id);
 
-$baseUrl = 'index.php?page=competition&id=' . $id;
 $action = $_GET['action'] ?? 'overview';
+$level = $_GET['level'] ?? 1;
+
+$baseUrl = 'index.php?page=competition&id=' . $id . '&level=' . $level;
+
 
 if ($action == 'continue') {
     Seasons::seasonContinue($id);
     header("Location: index.php?page=competition&id=" . $id);
     exit;
 }
+
+$actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'all_time_markers']);
+
 ?>
 
 <div class="container my-4">
@@ -55,7 +61,18 @@ if ($action == 'continue') {
             </div>
         </div>
         <hr>
-
+        <?php $maxLevel = (count($levels)) ?>
+        <?php if ($maxLevel > 1 && $actionHaveLevels): ?>
+            <div class="row g-2 mb-4">
+                <?php for ($i = 1; $i <= $maxLevel; $i++): ?>
+                    <div class="col">
+                        <a href="<?= $baseUrl ?>&level=<?= $i ?>&action=<?= $action ?>#content" class="btn btn-primary w-100 p-2 fs-1">
+                            <i class="bi bi-<?= $i ?>-circle me-2"></i> Livello
+                        </a>
+                    </div>
+                <?php endfor; ?>
+            </div>
+        <?php endif; ?>
         <?php Competitions::renderMenu($baseUrl, $mode) ?>
 
 
@@ -70,15 +87,15 @@ if ($action == 'continue') {
                     break;
 
                 case 'all_time_standings':
-                    Standings::renderAllTimeStandings($id);
+                    Standings::renderAllTimeStandings($id, $level);
                     break;
 
                 case 'hall_of_fame':
-                    Standings::renderHallOfFame($id);
+                    Standings::renderHallOfFame($id, $level);
                     break;
 
                 case 'all_time_markers':
-                    Markers::renderAllTimeMarkers($id);
+                    Markers::renderAllTimeMarkers($id, $level, 20);
                     break;
 
                 case 'head_to_head':

@@ -31,6 +31,9 @@ $matchesNull = Matches::checkNullMatches($id);
 $statusSeason = Seasons::getSeasonStatus($id);
 $isEndedSeason = $statusSeason == 2 ? true : false;
 
+$prevSeason = Seasons::getPreviousSeasonById($id);
+$nextSeason = Seasons::getNextSeasonById($id);
+
 ?>
 
 <div class="container my-4" id="season">
@@ -96,7 +99,7 @@ $isEndedSeason = $statusSeason == 2 ? true : false;
                 Standings::renderProgress($id, $level, $subaction);
                 break;
             case 'markers':
-                Markers::renderMarkerStandings($id, $level);
+                Markers::renderMarkerStandings($id, $level, 5);
                 break;
             case 'stats':
                 Stats::renderMenu($baseUrl, $level, $competition['modality']);
@@ -111,4 +114,24 @@ $isEndedSeason = $statusSeason == 2 ? true : false;
         }
         ?>
     </div>
+
+    <?php if ($prevSeason || $nextSeason): ?>
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <?php if ($prevSeason): ?>
+                <a href="index.php?page=season&id=<?= $prevSeason['id'] ?>"
+                    class="btn btn-outline-primary">
+                    ← <?= htmlspecialchars($prevSeason['season_year']) ?>
+                </a>
+            <?php else: ?>
+                <span></span>
+            <?php endif; ?>
+            <?php if ($nextSeason): ?>
+                <a href="index.php?page=season&id=<?= $nextSeason['id'] ?>"
+                    class="btn btn-outline-primary ms-auto">
+                    <?= htmlspecialchars($nextSeason['season_year']) ?> →
+                </a>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
 </div>
