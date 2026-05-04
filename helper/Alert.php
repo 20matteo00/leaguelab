@@ -24,7 +24,7 @@ class Alert
                 <strong><?= htmlspecialchars($title) ?></strong><br>
             <?php endif; ?>
 
-            <?= htmlspecialchars($text) ?>
+            <?= $text ?>
 
             <?php if ($dismissible): ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>

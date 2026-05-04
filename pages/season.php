@@ -1,6 +1,7 @@
 <?php
 $id = $_GET['id'] ?? null;
-if ($id === null) return;
+if ($id === null)
+    return;
 
 $season = DB::table('seasons')->where('id', '=', $id)->first();
 $competition = DB::table('competitions')->where('id', '=', $season['competition_id'])->first();
@@ -9,9 +10,9 @@ if (empty($season) || empty($competition)) {
     header("Location: index.php?page=competitions&action=view");
     exit;
 }
-$logo         = null;
-$images       = !empty($competition['images']) ? json_decode($competition['images'], true) : [];
-$logo         = $images['logo'] ?? null;
+$logo = null;
+$images = !empty($competition['images']) ? json_decode($competition['images'], true) : [];
+$logo = $images['logo'] ?? null;
 
 $matches_count = DB::table('matches')->where('season_id', '=', $id)->count();
 if ($matches_count == 0) {
@@ -42,7 +43,7 @@ $draws = Matches::getDraws($id);
 
 <div class="container my-4" id="season">
 
-    <?php if ($matchesNull === 0 && !$isEndedSeason) : ?>
+    <?php if ($matchesNull === 0 && !$isEndedSeason): ?>
         <?php if ($mode == 1): ?>
             <a href="<?= $baseUrl ?>&action=end" class="btn btn-warning fw-bold p-3 w-100">Chiudi Stagione</a>
         <?php elseif ($mode == 2): ?>
@@ -50,9 +51,15 @@ $draws = Matches::getDraws($id);
                 <a href="<?= $baseUrl ?>&action=end" class="btn btn-warning fw-bold p-3 w-100">Chiudi Stagione</a>
             <?php else: ?>
                 <?php if (empty($draws)): ?>
-                    <a href="<?= $baseUrl ?>" class="btn btn-warning fw-bold p-3 w-100">Vai al Livello Dopo</a>
+                    <a href="<?= $baseUrl ?>&action=nextphase" class="btn btn-warning fw-bold p-3 w-100">Vai al Livello Dopo</a>
                 <?php else: ?>
-                    <?php var_dump($draws); ?>
+                    <?php
+                    $text = '';
+                    foreach ($draws as $draw) {
+                        $text .= Teams::getTeamNameById($draw['teamA']) . ' VS ' . Teams::getTeamNameById($draw['teamB'])
+                            . ' (' . $draw['scoreA'] . '-' . $draw['scoreB'] . ')<br>';
+                    }
+                    Alert::generateAlert($text, 'danger', 'Squadre a pari Gol', false) ?>
                 <?php endif; ?>
             <?php endif; ?>
         <?php endif; ?>
@@ -63,8 +70,7 @@ $draws = Matches::getDraws($id);
             <div class="row">
                 <?php if ($logo): ?>
                     <div class="col-auto">
-                        <img src="<?= htmlspecialchars($logo) ?>"
-                            alt="<?= htmlspecialchars($competition['name']) ?>"
+                        <img src="<?= htmlspecialchars($logo) ?>" alt="<?= htmlspecialchars($competition['name']) ?>"
                             style="height:80px" class="rounded">
                     </div>
                 <?php endif; ?>
@@ -82,7 +88,8 @@ $draws = Matches::getDraws($id);
         <div class="row g-2 mb-4">
             <?php for ($i = 1; $i <= $maxLevel; $i++): ?>
                 <div class="col">
-                    <a href="<?= $baseUrl ?>&level=<?= $i ?>&action=<?= $action ?>#content" class="btn btn-primary w-100 p-2 fs-1">
+                    <a href="<?= $baseUrl ?>&level=<?= $i ?>&action=<?= $action ?>#content"
+                        class="btn btn-primary w-100 p-2 fs-1">
                         <i class="bi bi-<?= $i ?>-circle me-2"></i> Livello
                     </a>
                 </div>
@@ -119,6 +126,9 @@ $draws = Matches::getDraws($id);
                 $subaction = $_GET['subaction'] ?? 'overview';
                 Stats::renderStats($id, $level, $subaction);
                 break;
+            case 'nextphase':
+                Matches::generateNextPhase($id, $round_trip);
+                break;
             case 'end':
                 Seasons::setSeasonStatusEnd($id);
                 break;
@@ -131,16 +141,14 @@ $draws = Matches::getDraws($id);
     <?php if ($prevSeason || $nextSeason): ?>
         <div class="d-flex justify-content-between align-items-center mt-4">
             <?php if ($prevSeason): ?>
-                <a href="index.php?page=season&id=<?= $prevSeason['id'] ?>"
-                    class="btn btn-outline-primary">
+                <a href="index.php?page=season&id=<?= $prevSeason['id'] ?>" class="btn btn-outline-primary">
                     ← <?= htmlspecialchars($prevSeason['season_year']) ?>
                 </a>
             <?php else: ?>
                 <span></span>
             <?php endif; ?>
             <?php if ($nextSeason): ?>
-                <a href="index.php?page=season&id=<?= $nextSeason['id'] ?>"
-                    class="btn btn-outline-primary ms-auto">
+                <a href="index.php?page=season&id=<?= $nextSeason['id'] ?>" class="btn btn-outline-primary ms-auto">
                     <?= htmlspecialchars($nextSeason['season_year']) ?> →
                 </a>
             <?php endif; ?>

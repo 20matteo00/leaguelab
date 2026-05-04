@@ -1,6 +1,37 @@
 <?php
 class Calendar
 {
+    public static function groupMatches($matches, $mode)
+    {
+        $grouped = [];
+
+        foreach ($matches as $match) {
+
+            $round = $match['round'];
+            $phase = $match['phase'];
+            $group = $match['group_id'];
+
+            switch ($mode) {
+
+                // 🟢 Campionato (giornate)
+                case 1:
+                    $grouped[$round][] = $match;
+                    break;
+
+                // 🔴 Eliminazione diretta (fase + giornata)
+                case 2:
+                    $grouped[$phase][$round][] = $match;
+                    break;
+
+                // 🔵 Gironi (girone + giornata)
+                case 3:
+                    $grouped[$group][$round][] = $match;
+                    break;
+            }
+        }
+
+        return $grouped;
+    }
     public static function renderCalendar($seasonId, $level, $mode)
     {
         $matches = DB::table('matches')
@@ -9,28 +40,21 @@ class Calendar
             ->orderBy('round')
             ->get();
 
-        $grouped = [];
-        foreach ($matches as $match) {
-            $grouped[$match['round']][] = [
-                'id'         => $match['id'],
-                'home_team'  => $match['team_home_id'],
-                'away_team'  => $match['team_away_id'],
-                'score_home' => $match['score_home'],
-                'score_away' => $match['score_away'],
-            ];
-        }
+        $grouped = self::groupMatches($matches, $mode);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $parsed = self::parseCalendarPost($_POST, $grouped);
 
-            if ($_POST['action'] == 'simulate_all') self::simulateAllMatchesBySeason($seasonId, $level);
-            elseif ($_POST['action'] == 'delete_all') self::DeleteAllMatchesBySeason($seasonId, $level);
+            if ($_POST['action'] == 'simulate_all')
+                self::simulateAllMatchesBySeason($seasonId, $level);
+            elseif ($_POST['action'] == 'delete_all')
+                self::DeleteAllMatchesBySeason($seasonId, $level);
             else {
                 match ($parsed['action']) {
-                    'save'     => self::saveMatches($parsed['ids'], $parsed['post']),
+                    'save' => self::saveMatches($parsed['ids'], $parsed['post']),
                     'simulate' => self::simulateMatches($parsed['ids']),
-                    'delete'   => self::deleteMatches($parsed['ids']),
-                    default    => null,
+                    'delete' => self::deleteMatches($parsed['ids']),
+                    default => null,
                 };
                 Events::generatePlayersStatsForMatches($parsed['ids']);
             }
@@ -40,14 +64,11 @@ class Calendar
             header("Location: index.php?page=season&id=" . $seasonId . "&level=" . $level . "&action=calendar" . $anchor);
             exit;
         }
-        $allIds    = array_column(array_merge(...array_values($grouped)), 'id');
+        $allIds = array_column(array_merge(...array_values($grouped)), 'id');
         $allIdsStr = implode(',', $allIds);
 
         $isEnded = Seasons::checkSeasonEnd($seasonId);
-?>
-
-
-
+        ?>
         <!-- FORM UNICO CHE WRAPPA TUTTO -->
         <form method="POST">
             <?php if (!$isEnded): ?>
@@ -66,92 +87,112 @@ class Calendar
             <!-- AZIONI LIVELLO -->
             <?php if (!$isEnded && $mode != 2): ?>
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-4">
-                    <button type="submit" name="action" value="save_level" class="btn btn-success fw-bold p-3 w-100">💾 Salva Livello</button>
-                    <button type="submit" name="action" value="simulate_level" class="btn btn-warning fw-bold p-3 w-100">⚡ Simula Livello</button>
-                    <button type="submit" name="action" value="delete_level" class="btn btn-danger fw-bold p-3 w-100">✕ Elimina Livello</button>
+                    <button type="submit" name="action" value="save_level" class="btn btn-success fw-bold p-3 w-100">💾 Salva
+                        Livello</button>
+                    <button type="submit" name="action" value="simulate_level" class="btn btn-warning fw-bold p-3 w-100">⚡ Simula
+                        Livello</button>
+                    <button type="submit" name="action" value="delete_level" class="btn btn-danger fw-bold p-3 w-100">✕ Elimina
+                        Livello</button>
                 </div>
             <?php endif; ?>
             <div class="row g-4 mb-5 pb-5">
-                <?php foreach ($grouped as $round => $roundMatches): ?>
-                    <?php $roundIdsStr = implode(',', array_column($roundMatches, 'id')); ?>
-                    <div class="col-12 col-lg-6">
-                        <div class="card shadow-sm border-0 h-100" id="round-<?= $round ?>">
-                            <div class="card-header bg-primary text-white text-center fw-bold">
-                                Giornata <?= $round ?>
-                            </div>
-                            <div class="card-body">
-                                <?php foreach ($roundMatches as $match): ?>
-                                    <div class="d-flex align-items-center py-2 border-bottom">
-                                        <!-- Squadre -->
-                                        <div class="flex-grow-1">
-                                            <div class="row align-items-center text-center">
-                                                <!-- Home -->
-                                                <div class="col-5 text-end">
-                                                    <?php Teams::renderTeams($match['home_team'], 'fw-semibold px-2 rounded-pill d-inline-block') ?>
-                                                </div>
-                                                <!-- VS -->
-                                                <div class="col-2 text-muted small">
-                                                    vs
-                                                </div>
-                                                <!-- Away -->
-                                                <div class="col-5 text-start">
-                                                    <?php Teams::renderTeams($match['away_team'], 'fw-semibold px-2 rounded-pill d-inline-block') ?>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- Score inputs -->
-                                        <div class="d-flex align-items-center gap-1 mx-3">
-                                            <input type="number" name="score_home_<?= $match['id'] ?>"
-                                                value="<?= $match['score_home'] ?? '' ?>"
-                                                min="0"
-                                                class="form-control form-control-sm text-center p-0"
-                                                style="width:40px">
-                                            <span class="text-muted small">:</span>
-                                            <input type="number" name="score_away_<?= $match['id'] ?>"
-                                                value="<?= $match['score_away'] ?? '' ?>"
-                                                min="0"
-                                                class="form-control form-control-sm text-center p-0"
-                                                style="width:40px">
-                                        </div>
-                                        <!-- Bottoni -->
-                                        <div class="d-flex gap-1">
-                                            <a href="index.php?page=match&id=<?= $match['id'] ?>"
-                                                class="btn btn-info btn-sm px-2" title="Visualizza Incontro">👁️</a>
-                                            <?php if (!$isEnded): ?>
-                                                <button type="submit" name="action" value="save_one_<?= $match['id'] ?>"
-                                                    class="btn btn-success btn-sm px-2" title="Salva Incontro">✓</button>
-                                                <button type="submit" name="action" value="simulate_one_<?= $match['id'] ?>"
-                                                    class="btn btn-warning btn-sm px-2" title="Simula Incontro">⚡</button>
-                                                <button type="submit" name="action" value="delete_one_<?= $match['id'] ?>"
-                                                    class="btn btn-danger btn-sm px-2" title="Resetta Incontro">✕</button>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                            <!-- FOOTER GIORNATA -->
-                            <div class="card-footer d-flex gap-2 justify-content-end">
-                                <?php if (!$isEnded): ?>
-                                    <button type="submit" name="action" value="save_round_<?= $round ?>"
-                                        class="btn btn-success btn-sm" title="Salva Giornata">💾 Salva</button>
-                                    <button type="submit" name="action" value="simulate_round_<?= $round ?>"
-                                        class="btn btn-warning btn-sm" title="Simula Giornata">⚡ Simula</button>
-                                    <button type="submit" name="action" value="delete_round_<?= $round ?>"
-                                        class="btn btn-danger btn-sm" title="Resetta Giornata">✕ Resetta</button>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+                <?php if ($mode == 1): ?>
+
+                    <?php foreach ($grouped as $round => $roundMatches): ?>
+                        <?php self::renderDays($roundMatches, $round, $isEnded); ?>
+                    <?php endforeach; ?>
+
+                <?php elseif ($mode == 2): ?>
+
+                    <?php foreach ($grouped as $phase => $rounds): ?>
+                        <h3 class="text-center"><?= Competitions::$round_names[$phase - 1] ?></h3>
+
+                        <?php foreach ($rounds as $round => $roundMatches): ?>
+                            <?php self::renderDays($roundMatches, $round, $isEnded); ?>
+                        <?php endforeach; ?>
+
+                    <?php endforeach; ?>
+
+                <?php endif; ?>
             </div>
         </form>
 
-    <?php
+        <?php
+    }
+
+    private static function renderDays($roundMatches, $round, $isEnded)
+    {
+        ?>
+        <?php $roundIdsStr = implode(',', array_column($roundMatches, 'id')); ?>
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm border-0 h-100" id="round-<?= $round ?>">
+                <div class="card-header bg-primary text-white text-center fw-bold">
+                    Giornata <?= $round ?>
+                </div>
+                <div class="card-body">
+                    <?php foreach ($roundMatches as $match): ?>
+                        <div class="d-flex align-items-center py-2 border-bottom">
+                            <!-- Squadre -->
+                            <div class="flex-grow-1">
+                                <div class="row align-items-center text-center">
+                                    <!-- Home -->
+                                    <div class="col-5 text-end">
+                                        <?php Teams::renderTeams($match['team_home_id'], 'fw-semibold px-2 rounded-pill d-inline-block') ?>
+                                    </div>
+                                    <!-- VS -->
+                                    <div class="col-2 text-muted small">
+                                        vs
+                                    </div>
+                                    <!-- Away -->
+                                    <div class="col-5 text-start">
+                                        <?php Teams::renderTeams($match['team_away_id'], 'fw-semibold px-2 rounded-pill d-inline-block') ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Score inputs -->
+                            <div class="d-flex align-items-center gap-1 mx-3">
+                                <input type="number" name="score_home_<?= $match['id'] ?>" value="<?= $match['score_home'] ?? '' ?>"
+                                    min="0" class="form-control form-control-sm text-center p-0" style="width:40px">
+                                <span class="text-muted small">:</span>
+                                <input type="number" name="score_away_<?= $match['id'] ?>" value="<?= $match['score_away'] ?? '' ?>"
+                                    min="0" class="form-control form-control-sm text-center p-0" style="width:40px">
+                            </div>
+                            <!-- Bottoni -->
+                            <div class="d-flex gap-1">
+                                <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2"
+                                    title="Visualizza Incontro">👁️</a>
+                                <?php if (!$isEnded): ?>
+                                    <button type="submit" name="action" value="save_one_<?= $match['id'] ?>"
+                                        class="btn btn-success btn-sm px-2" title="Salva Incontro">✓</button>
+                                    <button type="submit" name="action" value="simulate_one_<?= $match['id'] ?>"
+                                        class="btn btn-warning btn-sm px-2" title="Simula Incontro">⚡</button>
+                                    <button type="submit" name="action" value="delete_one_<?= $match['id'] ?>"
+                                        class="btn btn-danger btn-sm px-2" title="Resetta Incontro">✕</button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <!-- FOOTER GIORNATA -->
+                <div class="card-footer d-flex gap-2 justify-content-end">
+                    <?php if (!$isEnded): ?>
+                        <button type="submit" name="action" value="save_round_<?= $round ?>" class="btn btn-success btn-sm"
+                            title="Salva Giornata">💾 Salva</button>
+                        <button type="submit" name="action" value="simulate_round_<?= $round ?>" class="btn btn-warning btn-sm"
+                            title="Simula Giornata">⚡ Simula</button>
+                        <button type="submit" name="action" value="delete_round_<?= $round ?>" class="btn btn-danger btn-sm"
+                            title="Resetta Giornata">✕ Resetta</button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <?php
     }
     private static function parseCalendarPost(array $post, array $grouped): array
     {
-        $action   = $post['action'] ?? '';
-        $allIds   = array_filter(explode(',', $post['match_ids'] ?? ''));
+        $action = $post['action'] ?? '';
+        $allIds = array_filter(explode(',', $post['match_ids'] ?? ''));
 
         // Singola partita → save_one_123 / simulate_one_123 / delete_one_123
         if (preg_match('/^(save|simulate|delete)_one_(\d+)$/', $action, $m)) {
@@ -159,7 +200,7 @@ class Calendar
             $round = null;
             foreach ($grouped as $r => $roundMatches) {
                 foreach ($roundMatches as $match) {
-                    if ((int)$match['id'] === (int)$m[2]) {
+                    if ((int) $match['id'] === (int) $m[2]) {
                         $round = $r;
                         break 2;
                     }
@@ -167,9 +208,9 @@ class Calendar
             }
             return [
                 'action' => $m[1],
-                'ids'    => [(int)$m[2]],
-                'post'   => $post,
-                'round'  => $round,
+                'ids' => [(int) $m[2]],
+                'post' => $post,
+                'round' => $round,
             ];
         }
 
@@ -177,9 +218,9 @@ class Calendar
         if (preg_match('/^(save|simulate|delete)_round_(\d+)$/', $action, $m)) {
             return [
                 'action' => $m[1],
-                'ids'    => array_column($grouped[(int)$m[2]], 'id'),
-                'post'   => $post,
-                'round'  => (int)$m[2],
+                'ids' => array_column($grouped[(int) $m[2]], 'id'),
+                'post' => $post,
+                'round' => (int) $m[2],
             ];
         }
 
@@ -187,9 +228,9 @@ class Calendar
         if (preg_match('/^(save|simulate|delete)_level$/', $action, $m)) {
             return [
                 'action' => $m[1],
-                'ids'    => array_map('intval', $allIds),
-                'post'   => $post,
-                'round'  => null,
+                'ids' => array_map('intval', $allIds),
+                'post' => $post,
+                'round' => null,
             ];
         }
 
@@ -205,8 +246,8 @@ class Calendar
             DB::table('matches')
                 ->where('id', '=', $id)
                 ->update([
-                    'score_home' => $scoreHome !== '' ? (int)$scoreHome : null,
-                    'score_away' => $scoreAway !== '' ? (int)$scoreAway : null,
+                    'score_home' => $scoreHome !== '' ? (int) $scoreHome : null,
+                    'score_away' => $scoreAway !== '' ? (int) $scoreAway : null,
                     'status' => 1,
                 ]);
         }
@@ -221,7 +262,8 @@ class Calendar
                 ->whereNull('score_away')
                 ->first();
 
-            if (!$match) continue;
+            if (!$match)
+                continue;
 
             $result = self::simulateMatch($id);
 
@@ -262,12 +304,13 @@ class Calendar
         );
 
         $sommaPesi = array_sum($pesiFiltrati);
-        $random    = rand(0, $sommaPesi - 1);
-        $soglia    = 0;
+        $random = rand(0, $sommaPesi - 1);
+        $soglia = 0;
 
         foreach ($pesiFiltrati as $numero => $peso) {
             $soglia += $peso;
-            if ($random < $soglia) return $numero;
+            if ($random < $soglia)
+                return $numero;
         }
 
         return $min;
@@ -275,27 +318,27 @@ class Calendar
 
     public static function getTeamStrength(int $teamId): array
     {
-        $teamStats    = Teams::getTeamStats($teamId);
+        $teamStats = Teams::getTeamStats($teamId);
         $playersStats = Players::getPlayersStatsByTeam($teamId);
 
-        $attack     = $teamStats['attack']   * 0.75 + $playersStats['attack']   * 0.25;
-        $defense    = $teamStats['defense']  * 0.75 + $playersStats['defense']  * 0.25;
+        $attack = $teamStats['attack'] * 0.75 + $playersStats['attack'] * 0.25;
+        $defense = $teamStats['defense'] * 0.75 + $playersStats['defense'] * 0.25;
         $homeFactor = $teamStats['home_factor'];
 
         $homeBoost = 1.0 + ($homeFactor / 999) * 0.15;
 
         return [
-            'attack'      => $attack,
-            'defense'     => $defense,
+            'attack' => $attack,
+            'defense' => $defense,
             'home_factor' => $homeFactor,
-            'home_boost'  => $homeBoost,
+            'home_boost' => $homeBoost,
         ];
     }
 
     public static function getForzaEffettiva(array $strengthHome, array $strengthAway): array
     {
         // Forza offensiva: attacco di chi attacca vs difesa di chi difende
-        $offHome = $strengthHome['attack']  * $strengthHome['home_boost'];
+        $offHome = $strengthHome['attack'] * $strengthHome['home_boost'];
         $offAway = $strengthAway['attack'];
 
         // Forza difensiva: quanto freni l'avversario (alta difesa = freni di più)
@@ -322,7 +365,7 @@ class Calendar
 
         $strengthHome = self::getTeamStrength($matchTeams['team_home_id']);
         $strengthAway = self::getTeamStrength($matchTeams['team_away_id']);
-        $forze        = self::getForzaEffettiva($strengthHome, $strengthAway);
+        $forze = self::getForzaEffettiva($strengthHome, $strengthAway);
 
         $ratio = ($forze['forza_home'] - $forze['forza_away']) / 999;
         $noise = mt_rand(-300, 300) / 999;
@@ -369,7 +412,7 @@ class Calendar
         return [
             'score_home' => $gol1,
             'score_away' => $gol2,
-            'status'     => 1,
+            'status' => 1,
         ];
     }
 
@@ -385,10 +428,10 @@ class Calendar
         // Indicizza per [home_id][away_id] => match
         $matchMap = [];
         foreach ($matches as $match) {
-            $match = (array)$match;
+            $match = (array) $match;
             $matchMap[$match['team_home_id']][$match['team_away_id']] = $match;
         }
-    ?>
+        ?>
         <div class="table-responsive">
             <table class="table table-hover align-middle shadow-sm text-center">
                 <thead class="table-dark">
@@ -427,8 +470,8 @@ class Calendar
                                             if ($sh === null || $sa === null) {
                                                 echo '<span class="text-muted">-</span>';
                                             } else {
-                                                $sh = (int)$sh;
-                                                $sa = (int)$sa;
+                                                $sh = (int) $sh;
+                                                $sa = (int) $sa;
 
                                                 if ($sh > $sa) {
                                                     $badge = 'bg-success text-white';
@@ -461,7 +504,7 @@ class Calendar
             <span class="text-muted align-self-center">— &nbsp; Non giocata</span>
         </div>
 
-<?php
+        <?php
     }
 
     private static function simulateAllMatchesBySeason($seasonId, $level)

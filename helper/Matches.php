@@ -42,7 +42,7 @@ class Matches
         $schedule = [];
 
         foreach ($teamsByLevel as $level => $teams) {
-            $teams    = array_values($teams);
+            $teams = array_values($teams);
             shuffle($teams);
             $numTeams = count($teams);
 
@@ -53,7 +53,7 @@ class Matches
             }
 
             $rounds = $numTeams - 1;
-            $half   = $numTeams / 2;
+            $half = $numTeams / 2;
 
             // home[0] è il perno fisso del circle method
             $circle = $teams; // tutti i team nell'array circolare
@@ -67,7 +67,8 @@ class Matches
                     $t1 = $circle[$i];
                     $t2 = $circle[$numTeams - 1 - $i];
 
-                    if ($t1 === null || $t2 === null) continue;
+                    if ($t1 === null || $t2 === null)
+                        continue;
 
                     // Giornate con indice dispari (1,3,5...) → inverti per bilanciare casa/trasferta
                     if ($round % 2 === 1) {
@@ -80,8 +81,8 @@ class Matches
                 $levelSchedule[] = $matches;
 
                 // Circle method: tieni fisso circle[0], ruota gli altri
-                $fixed  = array_shift($circle);           // estrai il perno
-                $last   = array_pop($circle);             // prendi l'ultimo
+                $fixed = array_shift($circle);           // estrai il perno
+                $last = array_pop($circle);             // prendi l'ultimo
                 array_unshift($circle, $last);            // mettilo in seconda posizione
                 array_unshift($circle, $fixed);           // rimetti il perno in testa
             }
@@ -161,39 +162,58 @@ class Matches
         return $schedule;
     }
 
+    public static function generateNextPhase($id, $ar = 0)
+    {
+        $minPhase = DB::table('matches')
+            ->select('MIN(phase) as min_phase')
+            ->where('season_id', '=', $id)
+            ->whereNotNull('score_home')
+            ->whereNotNull('score_away')
+            ->first()['min_phase'];
+
+        $matches = DB::table('matches')->where('season_id', '=', $id)->where('phase', '=', $minPhase)->get();
+
+        $winner = self::getWinners($matches);
+        $nextPhase[1] = $winner;
+
+        $matches = self::generateknockout($nextPhase, $ar);
+        self::insertMatches($matches, $id, 'knockout');
+    }
+
     private static function insertMatches($matches, $seasonId, $type = 'league')
     {
-        if (empty($matches)) return;
+        if (empty($matches))
+            return;
         foreach ($matches as $levelOrGroup => $rounds) {
             foreach ($rounds as $roundIndex => $roundMatches) {
                 foreach ($roundMatches as $match) {
                     if ($type == 'league') {
                         DB::table('matches')->insert([
-                            'season_id'    => $seasonId,
-                            'level'        => $levelOrGroup,
-                            'group_id'     => null,
-                            'phase'        => null,
+                            'season_id' => $seasonId,
+                            'level' => $levelOrGroup,
+                            'group_id' => null,
+                            'phase' => null,
                             'team_home_id' => $match['home'],
                             'team_away_id' => $match['away'],
-                            'score_home'   => null,
-                            'score_away'   => null,
-                            'match_date'   => null,
-                            'round'        => $roundIndex + 1,
-                            'status'       => 0,
+                            'score_home' => null,
+                            'score_away' => null,
+                            'match_date' => null,
+                            'round' => $roundIndex + 1,
+                            'status' => 0,
                         ]);
                     } elseif ($type == 'knockout') {
                         DB::table('matches')->insert([
-                            'season_id'    => $seasonId,
-                            'level'        => $levelOrGroup,
-                            'group_id'     => null,
-                            'phase'        => $match['phase'],
+                            'season_id' => $seasonId,
+                            'level' => $levelOrGroup,
+                            'group_id' => null,
+                            'phase' => $match['phase'],
                             'team_home_id' => $match['home'],
                             'team_away_id' => $match['away'],
-                            'score_home'   => null,
-                            'score_away'   => null,
-                            'match_date'   => null,
-                            'round'        => $roundIndex + 1,
-                            'status'       => 0,
+                            'score_home' => null,
+                            'score_away' => null,
+                            'match_date' => null,
+                            'round' => $roundIndex + 1,
+                            'status' => 0,
                         ]);
                     }
                 }
@@ -234,19 +254,20 @@ class Matches
         return true;
     }
 
-    public static function getDraws($seasonId)
+    private static function buildPairs($matches)
     {
-        $matches = DB::table('matches')
-            ->where('season_id', '=', $seasonId)
-            ->get();
-
         $pairs = [];
 
         foreach ($matches as $match) {
 
-            // normalizzo la coppia (A-B = B-A)
-            $teamA = min($match['team_home_id'], $match['team_away_id']);
-            $teamB = max($match['team_home_id'], $match['team_away_id']);
+            // supporta sia array che oggetto
+            $home = is_array($match) ? $match['team_home_id'] : $match->team_home_id;
+            $away = is_array($match) ? $match['team_away_id'] : $match->team_away_id;
+            $scoreHome = is_array($match) ? $match['score_home'] : $match->score_home;
+            $scoreAway = is_array($match) ? $match['score_away'] : $match->score_away;
+
+            $teamA = min($home, $away);
+            $teamB = max($home, $away);
 
             $key = $teamA . '-' . $teamB;
 
@@ -254,25 +275,54 @@ class Matches
                 $pairs[$key] = [
                     'teamA' => $teamA,
                     'teamB' => $teamB,
-                    'score_home' => 0,
-                    'score_away' => 0,
+                    'scoreA' => 0,
+                    'scoreB' => 0,
                 ];
             }
 
-            // sommo i gol correttamente in base a casa/trasferta
-            if ($match['team_home_id'] == $teamA) {
-                $pairs[$key]['score_home'] += $match['score_home'];
-                $pairs[$key]['score_away'] += $match['score_away'];
+            if ($home == $teamA) {
+                $pairs[$key]['scoreA'] += $scoreHome;
+                $pairs[$key]['scoreB'] += $scoreAway;
             } else {
-                $pairs[$key]['score_home'] += $match['score_away'];
-                $pairs[$key]['score_away'] += $match['score_home'];
+                $pairs[$key]['scoreA'] += $scoreAway;
+                $pairs[$key]['scoreB'] += $scoreHome;
             }
         }
+
+        return $pairs;
+    }
+    public static function getWinners($matches)
+    {
+        $pairs = self::buildPairs($matches);
+
+        $winners = [];
+
+        foreach ($pairs as $pair) {
+            if ($pair['scoreA'] > $pair['scoreB']) {
+                $winners[] = $pair['teamA'];
+            } elseif ($pair['scoreB'] > $pair['scoreA']) {
+                $winners[] = $pair['teamB'];
+            } else {
+                // gestione pareggio
+                $winners[] = $pair['teamA']; // o random/rigori
+            }
+        }
+
+        return $winners;
+    }
+
+    public static function getDraws($seasonId)
+    {
+        $matches = DB::table('matches')
+            ->where('season_id', '=', $seasonId)
+            ->get();
+
+        $pairs = self::buildPairs($matches);
 
         $draws = [];
 
         foreach ($pairs as $pair) {
-            if ($pair['score_home'] === $pair['score_away']) {
+            if ($pair['scoreA'] === $pair['scoreB']) {
                 $draws[] = $pair;
             }
         }
@@ -348,8 +398,8 @@ class Matches
         $teamHome = $_POST['team1'] ?? '';
         $teamAway = $_POST['team2'] ?? '';
         $location = $_POST['location'] ?? 'all';
-        $level    = $_POST['level'] ?? 'all';
-        $order    = $_POST['order'] ?? 'oldest_first';
+        $level = $_POST['level'] ?? 'all';
+        $order = $_POST['order'] ?? 'oldest_first';
 
         $matches = [];
         $validTeams = false;
@@ -361,7 +411,7 @@ class Matches
                 $matches = self::getMatchesByTeamsComp($seasons, $teamHome, $teamAway, $location, $level, $order);
             }
         }
-?>
+        ?>
         <div class="container">
             <form method="post" action="" class="head-to-head-form my-4">
                 <div class="row">
@@ -472,7 +522,8 @@ class Matches
                                     <td class="text-<?= $class ?>"><?= $esito ?></td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1">
-                                            <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2" title="Visualizza Incontro">👁️</a>
+                                            <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2"
+                                                title="Visualizza Incontro">👁️</a>
                                         </div>
                                     </td>
                                 </tr>
@@ -546,6 +597,6 @@ class Matches
                 <?php Alert::generateAlert('Nessun Incontro tra le 2 squadre in questa competizione', 'warning', 'Nessun Incontro') ?>
             <?php endif; ?>
         </div>
-<?php
+        <?php
     }
 }
