@@ -37,11 +37,12 @@ class Calendar
         $matches = DB::table('matches')
             ->where('season_id', '=', $seasonId)
             ->where('level', '=', $level)
+            ->orderBy('phase', 'DESC')
             ->orderBy('round')
             ->get();
 
         $grouped = self::groupMatches($matches, $mode);
-
+        
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $parsed = self::parseCalendarPost($_POST, $grouped);
 
@@ -71,7 +72,7 @@ class Calendar
         ?>
         <!-- FORM UNICO CHE WRAPPA TUTTO -->
         <form method="POST">
-            <?php if (!$isEnded): ?>
+            <?php if (!$isEnded && $mode != 2): ?>
                 <div class="position-fixed bottom-0 start-0 w-100 p-3 bg-white z-1">
                     <div class="container d-flex gap-2">
                         <button type="submit" class="btn btn-warning fw-bold w-100" name="action" value="simulate_all">
@@ -106,9 +107,17 @@ class Calendar
 
                     <?php foreach ($grouped as $phase => $rounds): ?>
                         <h3 class="text-center"><?= Competitions::$round_names[$phase - 1] ?></h3>
-
+                        <?php
+                        $isMinPhase = false;
+                        $minPhase = DB::table('matches')
+                            ->select('MIN(phase) as min_phase')
+                            ->where('season_id', '=', $seasonId)
+                            ->first()['min_phase'];
+                        if ($minPhase == $phase)
+                            $isMinPhase = true;
+                        ?>
                         <?php foreach ($rounds as $round => $roundMatches): ?>
-                            <?php self::renderDays($roundMatches, $round, $isEnded); ?>
+                            <?php self::renderDays($roundMatches, $round, $isEnded, $phase, $isMinPhase); ?>
                         <?php endforeach; ?>
 
                     <?php endforeach; ?>
@@ -120,12 +129,13 @@ class Calendar
         <?php
     }
 
-    private static function renderDays($roundMatches, $round, $isEnded)
+    private static function renderDays($roundMatches, $round, $isEnded, $phase = null, $isMinPhase = true)
     {
+        $anchor = ($phase) ? 'phase-' . $phase . '-round-' . $round : 'round-' . $round;
         ?>
         <?php $roundIdsStr = implode(',', array_column($roundMatches, 'id')); ?>
         <div class="col-12 col-lg-6">
-            <div class="card shadow-sm border-0 h-100" id="round-<?= $round ?>">
+            <div class="card shadow-sm border-0 h-100" id="<?= $anchor ?>">
                 <div class="card-header bg-primary text-white text-center fw-bold">
                     Giornata <?= $round ?>
                 </div>
@@ -161,7 +171,7 @@ class Calendar
                             <div class="d-flex gap-1">
                                 <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2"
                                     title="Visualizza Incontro">👁️</a>
-                                <?php if (!$isEnded): ?>
+                                <?php if (!$isEnded && $isMinPhase): ?>
                                     <button type="submit" name="action" value="save_one_<?= $match['id'] ?>"
                                         class="btn btn-success btn-sm px-2" title="Salva Incontro">✓</button>
                                     <button type="submit" name="action" value="simulate_one_<?= $match['id'] ?>"
@@ -175,7 +185,7 @@ class Calendar
                 </div>
                 <!-- FOOTER GIORNATA -->
                 <div class="card-footer d-flex gap-2 justify-content-end">
-                    <?php if (!$isEnded): ?>
+                    <?php if (!$isEnded && $isMinPhase): ?>
                         <button type="submit" name="action" value="save_round_<?= $round ?>" class="btn btn-success btn-sm"
                             title="Salva Giornata">💾 Salva</button>
                         <button type="submit" name="action" value="simulate_round_<?= $round ?>" class="btn btn-warning btn-sm"
