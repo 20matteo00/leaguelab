@@ -26,24 +26,37 @@ $action = $_GET['action'] ?? 'calendar';
 $baseUrl = 'index.php?page=season&id=' . $id;
 
 $round_trip = $competition['round_trip'];
+$mode = $competition['modality'];
 
 $matchesNull = Matches::checkNullMatches($id);
+$finalPhase = Matches::checkFinalPhase($id);
 $statusSeason = Seasons::getSeasonStatus($id);
 $isEndedSeason = $statusSeason == 2 ? true : false;
 
 $prevSeason = Seasons::getPreviousSeasonById($id);
 $nextSeason = Seasons::getNextSeasonById($id);
 
+$draws = Matches::getDraws($id);
+
 ?>
 
 <div class="container my-4" id="season">
-    <?php
-    if ($matchesNull === 0 && !$isEndedSeason) {
-    ?>
-        <a href="<?= $baseUrl ?>&action=end" class="btn btn-warning fw-bold p-3 w-100">Chiudi Stagione</a>
-    <?php
-    }
-    ?>
+
+    <?php if ($matchesNull === 0 && !$isEndedSeason) : ?>
+        <?php if ($mode == 1): ?>
+            <a href="<?= $baseUrl ?>&action=end" class="btn btn-warning fw-bold p-3 w-100">Chiudi Stagione</a>
+        <?php elseif ($mode == 2): ?>
+            <?php if ($finalPhase): ?>
+                <a href="<?= $baseUrl ?>&action=end" class="btn btn-warning fw-bold p-3 w-100">Chiudi Stagione</a>
+            <?php else: ?>
+                <?php if (empty($draws)): ?>
+                    <a href="<?= $baseUrl ?>" class="btn btn-warning fw-bold p-3 w-100">Vai al Livello Dopo</a>
+                <?php else: ?>
+                    <?php var_dump($draws); ?>
+                <?php endif; ?>
+            <?php endif; ?>
+        <?php endif; ?>
+    <?php endif; ?>
     <!-- ── HEADER ──────────────────────────────────────────────────────────── -->
     <div class="row my-3 g-3 align-items-center">
         <a class="col" href="index.php?page=competition&id=<?= $competition['id'] ?>">
@@ -76,13 +89,13 @@ $nextSeason = Seasons::getNextSeasonById($id);
             <?php endfor; ?>
         </div>
     <?php endif; ?>
-    <?php Seasons::renderMenu($baseUrl, $level, $competition['modality']) ?>
+    <?php Seasons::renderMenu($baseUrl, $level, $mode) ?>
     <hr>
     <div id="content">
         <?php
         switch ($action) {
             case 'calendar':
-                Calendar::renderCalendar($id, $level);
+                Calendar::renderCalendar($id, $level, $mode);
                 break;
             case 'standings':
                 Standings::renderStandingsMenu($baseUrl, $level, $round_trip);
@@ -102,7 +115,7 @@ $nextSeason = Seasons::getNextSeasonById($id);
                 Markers::renderMarkerStandings($id, $level, 5);
                 break;
             case 'stats':
-                Stats::renderMenu($baseUrl, $level, $competition['modality']);
+                Stats::renderMenu($baseUrl, $level, $mode);
                 $subaction = $_GET['subaction'] ?? 'overview';
                 Stats::renderStats($id, $level, $subaction);
                 break;

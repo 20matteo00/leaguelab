@@ -1,7 +1,7 @@
 <?php
 class Calendar
 {
-    public static function renderCalendar($seasonId, $level)
+    public static function renderCalendar($seasonId, $level, $mode)
     {
         $matches = DB::table('matches')
             ->where('season_id', '=', $seasonId)
@@ -64,7 +64,7 @@ class Calendar
             <?php endif; ?>
             <input type="hidden" name="match_ids" value="<?= $allIdsStr ?>">
             <!-- AZIONI LIVELLO -->
-            <?php if (!$isEnded): ?>
+            <?php if (!$isEnded && $mode != 2): ?>
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-4">
                     <button type="submit" name="action" value="save_level" class="btn btn-success fw-bold p-3 w-100">💾 Salva Livello</button>
                     <button type="submit" name="action" value="simulate_level" class="btn btn-warning fw-bold p-3 w-100">⚡ Simula Livello</button>

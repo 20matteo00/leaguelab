@@ -94,6 +94,13 @@ class QueryBuilder
         return $this;
     }
 
+    // WHERE NOT NULL
+    public function whereNotNull(string $column): self
+    {
+        $this->where[] = "`$column` IS NOT NULL";
+        return $this;
+    }
+
     // WHERE RAW
     public function whereRaw(string $sql, array $params = []): self
     {
@@ -172,6 +179,23 @@ class QueryBuilder
         $this->select("COUNT(*) as count");
         $result = $this->first();
         return (int) ($result['count'] ?? 0);
+    }
+
+    // EXISTS
+    public function exists(): bool
+    {
+        $sql = "SELECT 1 FROM `{$this->table}`";
+
+        if (!empty($this->where)) {
+            $sql .= " WHERE " . implode(' AND ', $this->where);
+        }
+
+        $sql .= " LIMIT 1";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($this->params);
+
+        return (bool) $stmt->fetchColumn();
     }
 
     // ➕ INSERT
