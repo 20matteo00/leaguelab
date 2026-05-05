@@ -49,7 +49,28 @@ class Seasons
                 'label' => 'Statistiche'
             ]
         ],
-        2 => [],
+        2 => [
+            [
+                'action' => 'calendar',
+                'icon' => 'calendar-event',
+                'label' => 'Calendario'
+            ],
+            [
+                'action' => 'bracket',
+                'icon' => 'diagram-3',
+                'label' => 'Tabellone'
+            ],
+            [
+                'action' => 'markers',
+                'icon' => 'person-standing',
+                'label' => 'Marcatori'
+            ],
+            [
+                'action' => 'stats',
+                'icon' => 'bar-chart',
+                'label' => 'Statistiche'
+            ]
+        ],
         3 => [],
     ];
 
@@ -66,21 +87,21 @@ class Seasons
         foreach ($teamsLevels as $row) {
             if (!is_null($row['group_id'])) {
                 $hasGroups = true;
-                $group = (int)$row['group_id'];
+                $group = (int) $row['group_id'];
 
                 if (!isset($result['groups'][$group])) {
                     $result['groups'][$group] = [];
                 }
 
-                $result['groups'][$group][] = (int)$row['team_id'];
+                $result['groups'][$group][] = (int) $row['team_id'];
             } else {
-                $level = (int)$row['level'];
+                $level = (int) $row['level'];
 
                 if (!isset($result['levels'][$level])) {
                     $result['levels'][$level] = [];
                 }
 
-                $result['levels'][$level][] = (int)$row['team_id'];
+                $result['levels'][$level][] = (int) $row['team_id'];
             }
         }
 
@@ -110,7 +131,8 @@ class Seasons
     public static function checkSeasonEnd($seasonId)
     {
         $status = self::getSeasonStatus($seasonId);
-        if ($status == 2) return true;
+        if ($status == 2)
+            return true;
         return false;
     }
 
@@ -130,7 +152,8 @@ class Seasons
     {
         $lastSeasonEnd = self::getLastSeason($compId)['status'];
 
-        if ($lastSeasonEnd == 2) return true;
+        if ($lastSeasonEnd == 2)
+            return true;
         return false;
     }
 
@@ -145,8 +168,8 @@ class Seasons
     public static function seasonContinue($compId)
     {
         $lastSeason = self::getLastSeason($compId);
-        $year       = $lastSeason['season_year'];
-        $idSeason   = $lastSeason['id'];
+        $year = $lastSeason['season_year'];
+        $idSeason = $lastSeason['id'];
 
         // Livelli configurati per questa competizione, ordinati
         $compLevels = DB::table('competition_levels')
@@ -157,9 +180,9 @@ class Seasons
         // Nuova stagione
         $newSeasonId = DB::table('seasons')->insert([
             'competition_id' => $compId,
-            'season_year'    => $year + 1,
-            'status'         => 0,
-            'created'        => date('Y-m-d H:i:s'),
+            'season_year' => $year + 1,
+            'status' => 0,
+            'created' => date('Y-m-d H:i:s'),
         ]);
 
         // Caso semplice: nessun livello configurato → copia i team così come sono
@@ -171,8 +194,8 @@ class Seasons
             foreach ($oldTeams as $row) {
                 DB::table('season_teams')->insert([
                     'season_id' => $newSeasonId,
-                    'team_id'   => $row['team_id'],
-                    'level'     => $row['level'],
+                    'team_id' => $row['team_id'],
+                    'level' => $row['level'],
                 ]);
             }
             return $newSeasonId;
@@ -188,12 +211,13 @@ class Seasons
         // Indicizza i comp_levels per accesso rapido
         $levelConfig = [];
         foreach ($compLevels as $cl) {
-            $levelConfig[(int)$cl['level']] = $cl;
+            $levelConfig[(int) $cl['level']] = $cl;
         }
 
         foreach ($levelConfig as $levelNum => $config) {
             $teams = $teamsLevel[$levelNum] ?? [];
-            if (empty($teams)) continue;
+            if (empty($teams))
+                continue;
 
             $teamsAssoc = array_combine($teams, $teams); // [8=>8, 9=>9, ...]
 
@@ -208,9 +232,9 @@ class Seasons
 
             $teamIds = array_column($standings, 'team_id'); // ← prende il campo team_id da ogni riga
 
-            $totalTeams      = count($teamIds);
-            $promotionSpots  = (int)$config['promotion_spots'];
-            $relegationSpots = (int)$config['relegation_spots'];
+            $totalTeams = count($teamIds);
+            $promotionSpots = (int) $config['promotion_spots'];
+            $relegationSpots = (int) $config['relegation_spots'];
 
             foreach ($teamIds as $pos => $teamId) {
                 $posizione = $pos + 1; // 1-based
@@ -232,8 +256,8 @@ class Seasons
         foreach ($movements as $teamId => $newLevel) {
             DB::table('season_teams')->insert([
                 'season_id' => $newSeasonId,
-                'team_id'   => $teamId,
-                'level'     => $newLevel,
+                'team_id' => $teamId,
+                'level' => $newLevel,
             ]);
         }
 
@@ -243,22 +267,23 @@ class Seasons
     public static function renderMenu($baseUrl, $level, $mode)
     {
         $menu = self::$menu[$mode];
-?>
+        ?>
         <div class="row g-2 mb-4">
             <?php foreach ($menu as $m): ?>
                 <div class="col">
-                    <a href="<?= $baseUrl ?>&level=<?= $level ?>&action=<?= $m['action'] ?>#content" class="btn btn-secondary w-100 p-3 fs-5">
+                    <a href="<?= $baseUrl ?>&level=<?= $level ?>&action=<?= $m['action'] ?>#content"
+                        class="btn btn-secondary w-100 p-3 fs-5">
                         <i class="bi bi-<?= $m['icon'] ?> "></i> <?= $m['label'] ?>
                     </a>
                 </div>
             <?php endforeach; ?>
         </div>
-<?php
+        <?php
     }
 
     public static function getPreviousSeasonById($seasonId)
     {
-        $currentSeason =  DB::table('seasons')->where('id', '=', $seasonId)->first();
+        $currentSeason = DB::table('seasons')->where('id', '=', $seasonId)->first();
         return DB::table('seasons')
             ->where('competition_id', '=', $currentSeason['competition_id'])
             ->where('season_year', '=', $currentSeason['season_year'] - 1)
@@ -267,7 +292,7 @@ class Seasons
 
     public static function getNextSeasonById($seasonId)
     {
-        $currentSeason =  DB::table('seasons')->where('id', '=', $seasonId)->first();
+        $currentSeason = DB::table('seasons')->where('id', '=', $seasonId)->first();
         return DB::table('seasons')
             ->where('competition_id', '=', $currentSeason['competition_id'])
             ->where('season_year', '=', $currentSeason['season_year'] + 1)

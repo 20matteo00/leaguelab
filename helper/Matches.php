@@ -535,10 +535,11 @@ class Matches
                 </div>
                 <?php
                 $teams = [
-                    $teamHome => DB::table('teams')->select('name')->where('id', '=', $teamHome)->first(),
-                    $teamAway => DB::table('teams')->select('name')->where('id', '=', $teamAway)->first(),
+                    $teamHome => DB::table('teams')->select('name')->where('id', '=', $teamHome)->first()['name'],
+                    $teamAway => DB::table('teams')->select('name')->where('id', '=', $teamAway)->first()['name'],
                 ];
                 $standings = Standings::buildStandings($matches, $teams, 'all');
+
                 ?>
                 <div class="row">
                     <?php foreach ($standings as $teamId => $stats): ?>

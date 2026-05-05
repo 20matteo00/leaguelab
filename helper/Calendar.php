@@ -554,6 +554,210 @@ class Calendar
         <?php
     }
 
+    public static function renderKnockoutBracket($seasonId, $level, $round_trip)
+    {
+        $matches = DB::table('matches')
+            ->where('season_id', '=', $seasonId)
+            ->where('level', '=', $level)
+            ->orderBy('phase', 'DESC')
+            ->orderBy('round')
+            ->get();
+
+        if (empty($matches))
+            return;
+
+        // Raggruppa per phase, mantenendo teamA/teamB come home/away originale
+        $byPhase = [];
+        foreach ($matches as $match) {
+            $match = (array) $match;
+            $phase = (int) $match['phase'];
+            $home = $match['team_home_id'];
+            $away = $match['team_away_id'];
+            $key = min($home, $away) . '-' . max($home, $away);
+            if (!isset($byPhase[$phase][$key])) {
+                $byPhase[$phase][$key] = [
+                    'teamA' => $home,
+                    'teamB' => $away,
+                    'scoreA' => 0,
+                    'scoreB' => 0,
+                    'hasScore' => false,
+                    'matches' => [],
+                ];
+            }
+            $byPhase[$phase][$key]['matches'][] = $match;
+        }
+
+        // Calcola aggregati per ogni pair
+        foreach ($byPhase as $phase => &$phasePairs) {
+            foreach ($phasePairs as $key => &$pair) {
+                foreach ($pair['matches'] as $m) {
+                    if ($m['score_home'] === null || $m['score_away'] === null)
+                        continue;
+                    $pair['hasScore'] = true;
+                    if ($m['team_home_id'] == $pair['teamA']) {
+                        $pair['scoreA'] += (int) $m['score_home'];
+                        $pair['scoreB'] += (int) $m['score_away'];
+                    } else {
+                        $pair['scoreA'] += (int) $m['score_away'];
+                        $pair['scoreB'] += (int) $m['score_home'];
+                    }
+                }
+            }
+        }
+        unset($phasePairs, $pair);
+
+        // Ordina fasi: dalla più bassa (fase già giocata) alla più alta
+        ksort($byPhase);
+        $phaseKeys = array_keys($byPhase); // es. [1,2,4] o [2,4] o [4]
+
+        // Slot della fase più bassa disponibile: ordine libero, è il punto di partenza
+        $lowestPhase = $phaseKeys[0];
+        $slotMap = [];
+        $slotMap[$lowestPhase] = array_keys($byPhase[$lowestPhase]);
+
+        // Risali verso le fasi più alte
+        foreach ($phaseKeys as $idx => $phase) {
+            if ($idx === 0)
+                continue;
+
+            $prevPhase = $phaseKeys[$idx - 1];
+            $prevSlots = $slotMap[$prevPhase]; // pair ordinati della fase precedente
+            $currentPairs = $byPhase[$phase];
+            $usedKeys = [];
+            $newSlots = [];
+
+            foreach ($prevSlots as $prevKey) {
+                $prevPair = $byPhase[$prevPhase][$prevKey];
+
+                // I due team di questo pair sono i vincitori (o partecipanti)
+                // di due match della fase corrente
+                foreach ([$prevPair['teamA'], $prevPair['teamB']] as $team) {
+                    $foundKey = null;
+                    foreach ($currentPairs as $cKey => $cPair) {
+                        if (in_array($cKey, $usedKeys))
+                            continue;
+                        if ($cPair['teamA'] == $team || $cPair['teamB'] == $team) {
+                            $foundKey = $cKey;
+                            break;
+                        }
+                    }
+                    if ($foundKey !== null) {
+                        $newSlots[] = $foundKey;
+                        $usedKeys[] = $foundKey;
+                    }
+                }
+            }
+
+            $slotMap[$phase] = $newSlots;
+        }
+
+        // Rendering — dalla fase più alta alla più bassa (sinistra → destra)
+        krsort($byPhase);
+        $phaseKeys = array_keys($byPhase);
+        ?>
+        <div class="bracket-wrapper overflow-auto pb-4">
+            <div class="d-flex gap-0 align-items-stretch" style="min-width: max-content;">
+
+                <?php foreach ($phaseKeys as $phaseIdx => $phase):
+                    $slots = $slotMap[$phase] ?? [];
+                    ?>
+                    <div class="bracket-round d-flex flex-column" style="min-width:210px; padding: 0 8px;">
+                        <div class="text-center fw-bold text-uppercase small text-muted mb-2 border-bottom pb-1">
+                            <?= Competitions::$round_names[$phase - 1] ?? 'Fase ' . $phase ?>
+                        </div>
+                        <div class="d-flex flex-column justify-content-around h-100 gap-3">
+                            <?php foreach ($slots as $key):
+                                $pair = $byPhase[$phase][$key] ?? null;
+                                if (!$pair)
+                                    continue;
+                                $winnerA = $pair['hasScore'] && $pair['scoreA'] > $pair['scoreB'];
+                                $winnerB = $pair['hasScore'] && $pair['scoreB'] > $pair['scoreA'];
+                                ?>
+                                <div class="bracket-match card border shadow-sm" style="border-radius:10px; overflow:hidden;">
+                                    <?php
+                                    // Ordina i match per round (andata prima, ritorno dopo)
+                                    usort($pair['matches'], fn($a, $b) => $a['round'] <=> $b['round']);
+                                    $isAR = count($pair['matches']) > 1 && $phase !== 1;
+
+                                    // Calcola gol per match separati (per G1/G2)
+                                    $gA = [];
+                                    $gB = [];
+                                    foreach ($pair['matches'] as $i => $m) {
+                                        if ($m['score_home'] === null) {
+                                            $gA[$i] = null;
+                                            $gB[$i] = null;
+                                        } elseif ($m['team_home_id'] == $pair['teamA']) {
+                                            $gA[$i] = (int) $m['score_home'];
+                                            $gB[$i] = (int) $m['score_away'];
+                                        } else {
+                                            $gA[$i] = (int) $m['score_away'];
+                                            $gB[$i] = (int) $m['score_home'];
+                                        }
+                                    }
+                                    ?>
+
+                                    <!-- Header colonne -->
+                                    <?php if ($isAR): ?>
+                                        <div class="d-flex px-2 py-1 bg-light border-bottom" style="font-size:0.7rem; color:#999;">
+                                            <span style="flex:1"></span>
+                                            <span style="width:28px; text-align:center;">G1</span>
+                                            <span style="width:28px; text-align:center;">G2</span>
+                                            <span style="width:36px; text-align:center; font-weight:bold;">Tot</span>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <!-- Team A -->
+                                    <div class="d-flex align-items-center justify-content-between px-2 py-1 <?= $winnerA ? 'bg-success text-white' : ($winnerB ? 'bg-light text-muted' : '') ?>"
+                                        style="border-bottom:1px solid #eee;">
+                                        <span class="small fw-semibold text-truncate" style="flex:1; max-width:110px;">
+                                            <?php Teams::renderTeams($pair['teamA'], 'fw-semibold px-2 rounded-pill d-inline-block', false, false, ['abbr_name' => 3]) ?>
+                                        </span>
+                                        <?php if ($isAR): ?>
+                                            <span style="width:28px; text-align:center; font-size:0.8rem;">
+                                                <?= $gA[0] ?? '-' ?>
+                                            </span>
+                                            <span style="width:28px; text-align:center; font-size:0.8rem;">
+                                                <?= $gA[1] ?? '-' ?>
+                                            </span>
+                                        <?php endif; ?>
+                                        <span style="width:36px; text-align:center;" class="fw-bold">
+                                            <?= $pair['hasScore'] ? $pair['scoreA'] : '-' ?>
+                                        </span>
+                                    </div>
+
+                                    <!-- Team B -->
+                                    <div
+                                        class="d-flex align-items-center justify-content-between px-2 py-1 <?= $winnerB ? 'bg-success text-white' : ($winnerA ? 'bg-light text-muted' : '') ?>">
+                                        <span class="small fw-semibold text-truncate" style="flex:1; max-width:110px;">
+                                            <?php Teams::renderTeams($pair['teamB'], 'fw-semibold px-2 rounded-pill d-inline-block', false, false, ['abbr_name' => 3]) ?>
+                                        </span>
+                                        <?php if ($isAR): ?>
+                                            <span style="width:28px; text-align:center; font-size:0.8rem;">
+                                                <?= $gB[0] ?? '-' ?>
+                                            </span>
+                                            <span style="width:28px; text-align:center; font-size:0.8rem;">
+                                                <?= $gB[1] ?? '-' ?>
+                                            </span>
+                                        <?php endif; ?>
+                                        <span style="width:36px; text-align:center;" class="fw-bold">
+                                            <?= $pair['hasScore'] ? $pair['scoreB'] : '-' ?>
+                                        </span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <?php if ($phaseIdx < count($phaseKeys) - 1): ?>
+                        <div class="d-flex align-items-start px-1" style="color:#ddd; font-size:1.5rem;">›</div>
+                    <?php endif; ?>
+
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php
+    }
+
     private static function simulateAllMatchesBySeason($seasonId, $level)
     {
         $matches = DB::table('matches')->select('id')->where('season_id', '=', $seasonId)->get();

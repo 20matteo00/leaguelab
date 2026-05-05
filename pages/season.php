@@ -110,7 +110,7 @@ $draws = Matches::getDraws($id);
                 Standings::renderStandings($id, $level, $subaction, $round_trip);
                 break;
             case 'bracket':
-                Calendar::renderBracket($id, $level);
+                $mode == 1 ? Calendar::renderBracket($id, $level) : Calendar::renderKnockoutBracket($id, $level, $round_trip);
                 break;
             case 'trend':
                 $rounds = max(DB::table('matches')->select('round')->where('season_id', '=', $season['id'])->where('level', '=', $level)->get())['round'];
@@ -119,7 +119,7 @@ $draws = Matches::getDraws($id);
                 Standings::renderProgress($id, $level, $subaction);
                 break;
             case 'markers':
-                Markers::renderMarkerStandings($id, $level, 5);
+                Markers::renderMarkerStandings($id, $level, 2);
                 break;
             case 'stats':
                 Stats::renderMenu($baseUrl, $level, $mode);

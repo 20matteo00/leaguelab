@@ -43,8 +43,8 @@ class Competitions
     public static $round_names = [
         'Finale',
         'Semifinale',
-        'Quarti di finale',
-        'Ottavi di finale',
+        'Quarti',
+        'Ottavi',
         'Sedicesimi',
         'Trentaduesimi',
         'Sessantaquattresimi'

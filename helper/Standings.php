@@ -262,8 +262,8 @@ class Standings
             $found = $result[0] ?? null;
 
             $comp_params[$level] = [
-                'rel' => $found['relegation_spots'],
-                'pro' => $found['promotion_spots'],
+                'rel' => $found['relegation_spots'] ?? null,
+                'pro' => $found['promotion_spots'] ?? null,
             ];
         }
 
