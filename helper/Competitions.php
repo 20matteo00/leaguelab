@@ -7,36 +7,63 @@ class Competitions
         1 => [
             [
                 'action' => 'overview',
-                'icon'   => 'calendar3',
-                'label'  => 'Panoramica'
+                'icon' => 'calendar3',
+                'label' => 'Panoramica'
             ],
             [
                 'action' => 'all_time_standings',
-                'icon'   => 'trophy',
-                'label'  => 'Perpetua'
+                'icon' => 'trophy',
+                'label' => 'Perpetua'
             ],
             [
                 'action' => 'hall_of_fame',
-                'icon'   => 'award',
-                'label'  => 'Albo'
+                'icon' => 'award',
+                'label' => 'Albo'
             ],
             [
                 'action' => 'all_time_markers',
-                'icon'   => 'person-standing',
-                'label'  => 'Marcatori'
+                'icon' => 'person-standing',
+                'label' => 'Marcatori'
             ],
             [
                 'action' => 'head_to_head',
-                'icon'   => 'shield',
-                'label'  => 'Scontri Diretti'
+                'icon' => 'shield',
+                'label' => 'Scontri Diretti'
             ],
             [
                 'action' => 'stats',
-                'icon'   => 'bar-chart',
-                'label'  => 'Statistiche'
+                'icon' => 'bar-chart',
+                'label' => 'Statistiche'
             ],
         ],
-        2 => [],
+        2 => [
+
+            [
+                'action' => 'overview',
+                'icon' => 'calendar3',
+                'label' => 'Panoramica'
+            ],
+            [
+                'action' => 'hall_of_fame',
+                'icon' => 'award',
+                'label' => 'Albo'
+            ],
+            [
+                'action' => 'all_time_markers',
+                'icon' => 'person-standing',
+                'label' => 'Marcatori'
+            ],
+            [
+                'action' => 'head_to_head',
+                'icon' => 'shield',
+                'label' => 'Scontri Diretti'
+            ],
+            [
+                'action' => 'stats',
+                'icon' => 'bar-chart',
+                'label' => 'Statistiche'
+            ],
+        ],
         3 => [],
     ];
 
@@ -53,7 +80,7 @@ class Competitions
     public static function renderMenu($baseUrl, $mode)
     {
         $menu = self::$menu[$mode];
-?>
+        ?>
         <div class="row g-2 mb-4">
             <?php foreach ($menu as $m): ?>
                 <div class="col">
@@ -63,7 +90,7 @@ class Competitions
                 </div>
             <?php endforeach; ?>
         </div>
-    <?php
+        <?php
     }
 
     public static function renderCompetitions($compId, $class = '', $country = false, $logo = false)
@@ -88,36 +115,34 @@ class Competitions
         if (!$image) {
             $image = 'images/empty.png';
         }
-    ?>
+        ?>
         <div>
 
             <?php if ($logo): ?>
-                <img src="<?= $image ?>"
-                    class="img-sm">
+                <img src="<?= $image ?>" class="img-sm">
             <?php endif; ?>
 
             <span class="<?= $class ?>"><?= htmlspecialchars($comp['name']) ?></span>
-            
+
             <?php if ($country && !empty($comp['country'])): ?>
-                <img
-                    src="https://flagcdn.com/16x12/<?= strtolower($comp['country']) ?>.png"
+                <img src="https://flagcdn.com/16x12/<?= strtolower($comp['country']) ?>.png"
                     alt="<?= htmlspecialchars($comp['country']) ?>">
             <?php endif; ?>
 
         </div>
-    <?php
+        <?php
     }
 
     public static function rendeOverview($competition, $levels, $seasons, $id)
     {
 
-        $modality    = Field::getModality();
-        $states      = Field::getStates();
-        $mode         = (int)$competition['modality'];
-        $mode_label   = array_column($modality, 'name', 'code')[$mode] ?? '—';
+        $modality = Field::getModality();
+        $states = Field::getStates();
+        $mode = (int) $competition['modality'];
+        $mode_label = array_column($modality, 'name', 'code')[$mode] ?? '—';
         $country_name = array_column(Field::getStates(), 'name', 'code')[$competition['country'] ?? ''] ?? null;
 
-    ?>
+        ?>
         <!-- ── INFO GENERALI ───────────────────────────────────────────────────── -->
         <div class="row my-3 g-3">
 
@@ -215,11 +240,11 @@ class Competitions
                     <div class="card h-100 shadow-sm">
                         <div class="card-header fw-semibold bg-light">🔀 Tabellone</div>
                         <div class="card-body">
-                            <?php $rounds = (int)log($competition['participants'], 2) ?>
+                            <?php $rounds = (int) log($competition['participants'], 2) ?>
                             <p class="text-muted small mb-2">Struttura del tabellone:</p>
                             <?php for ($r = $rounds; $r >= 1; $r--): ?>
                                 <li class="d-flex align-items-center gap-2 py-1 border-bottom">
-                                    <span class="badge bg-secondary"><?= (int)pow(2, $r - 1) ?> partite</span>
+                                    <span class="badge bg-secondary"><?= (int) pow(2, $r - 1) ?> partite</span>
                                     <span><?= Competitions::$round_names[$r - 1] ?? 'Turno ' . $r ?></span>
                                 </li>
                             <?php endfor; ?>
@@ -233,12 +258,13 @@ class Competitions
                         <div class="card-header fw-semibold bg-light">⚽ Struttura Gironi</div>
                         <div class="card-body">
                             <?php
-                            $ng  = (int)$competition['num_groups'];
-                            $tpg = $ng > 0 ? (int)floor((int)$competition['participants'] / $ng) : 0;
-                            $q   = (int)$competition['qualifiers'];
+                            $ng = (int) $competition['num_groups'];
+                            $tpg = $ng > 0 ? (int) floor((int) $competition['participants'] / $ng) : 0;
+                            $q = (int) $competition['qualifiers'];
                             $tot_qualifiers = $ng * $q;
-                            $bracket_size   = 1;
-                            while ($bracket_size < $tot_qualifiers) $bracket_size *= 2;
+                            $bracket_size = 1;
+                            while ($bracket_size < $tot_qualifiers)
+                                $bracket_size *= 2;
                             ?>
                             <table class="table table-sm mb-0">
                                 <tbody>
@@ -267,11 +293,11 @@ class Competitions
                     <div class="card h-100 shadow-sm">
                         <div class="card-header fw-semibold bg-light">🔀 Tabellone</div>
                         <div class="card-body">
-                            <?php $rounds = (int)log($bracket_size, 2) ?>
+                            <?php $rounds = (int) log($bracket_size, 2) ?>
                             <p class="text-muted small mb-2">Struttura del tabellone:</p>
                             <?php for ($r = $rounds; $r >= 1; $r--): ?>
                                 <li class="d-flex align-items-center gap-2 py-1 border-bottom">
-                                    <span class="badge bg-secondary"><?= (int)pow(2, $r - 1) ?> partite</span>
+                                    <span class="badge bg-secondary"><?= (int) pow(2, $r - 1) ?> partite</span>
                                     <span><?= Competitions::$round_names[$r - 1] ?? 'Turno ' . $r ?></span>
                                 </li>
                             <?php endfor; ?>
@@ -308,7 +334,7 @@ class Competitions
                                         $team_count = DB::table('season_teams')
                                             ->where('season_id', '=', $season['id'])
                                             ->count();
-                                        $st  = (int)$season['status'];
+                                        $st = (int) $season['status'];
                                         ?>
                                         <tr>
                                             <td class="text-muted small"><?= $season['id'] ?></td>
@@ -342,6 +368,6 @@ class Competitions
                 </div>
             </div>
         </div>
-<?php
+        <?php
     }
 }

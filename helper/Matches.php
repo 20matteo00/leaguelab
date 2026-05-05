@@ -259,7 +259,7 @@ class Matches
         return true;
     }
 
-    private static function buildPairs($matches)
+    public static function buildPairs($matches)
     {
         $pairs = [];
 
@@ -382,7 +382,7 @@ class Matches
         return $query->get();
     }
 
-    public static function renderMatchesByTeamsAndComp($compId)
+    public static function renderMatchesByTeamsAndComp($compId, $mode)
     {
         $seasonId = Seasons::getLastSeason($compId)['id'];
         $teams = DB::table('season_teams')->select('team_id')->where('season_id', '=', $seasonId)->get();
@@ -486,6 +486,9 @@ class Matches
                             <tr>
                                 <th>Anno</th>
                                 <th>Livello</th>
+                                <?php if ($mode == 2): ?>
+                                    <th>Fase</th>
+                                <?php endif; ?>
                                 <th>Giornata</th>
                                 <th>Incontro</th>
                                 <th>Risultato</th>
@@ -506,11 +509,18 @@ class Matches
                                     $class = 'danger';
                                     $esito = '2';
                                 }
+                                $nameRound = $match['round'];
+                                if ($mode == 2) {
+                                    $nameRound = ($match['round'] == 1) ? 'Andata' : 'Ritorno';
+                                }
                                 ?>
                                 <tr>
                                     <td><?= $season_year ?></td>
                                     <td><?= $match['level'] ?></td>
-                                    <td><?= $match['round'] ?></td>
+                                    <?php if ($mode == 2): ?>
+                                        <td><?= Competitions::$round_names[$match['phase'] - 1] ?></td>
+                                    <?php endif; ?>
+                                    <td><?= $nameRound ?></td>
                                     <td>
                                         <div>
                                             <?php Teams::renderTeams($match['team_home_id'], 'px-2 rounded-pill d-inline-block small') ?>

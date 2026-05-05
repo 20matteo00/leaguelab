@@ -5,8 +5,8 @@ class Stats
     public static $globalmenu = [
         [
             'subaction' => 'overview',
-            'icon'   => 'calendar3',
-            'label'  => 'Panoramica'
+            'icon' => 'calendar3',
+            'label' => 'Panoramica'
         ],
         [
             'subaction' => 'team_history',
@@ -19,8 +19,8 @@ class Stats
         1 => [
             [
                 'subaction' => 'overview',
-                'icon'   => 'calendar3',
-                'label'  => 'Panoramica'
+                'icon' => 'calendar3',
+                'label' => 'Panoramica'
             ],
             [
                 'subaction' => 'team_matches',
@@ -28,14 +28,25 @@ class Stats
                 'label' => 'Incontri per Squadra'
             ],
         ],
-        2 => [],
+        2 => [
+            [
+                'subaction' => 'overview',
+                'icon' => 'calendar3',
+                'label' => 'Panoramica'
+            ],
+            [
+                'subaction' => 'team_matches',
+                'icon' => 'dribbble',
+                'label' => 'Incontri per Squadra'
+            ],
+        ],
         3 => [],
     ];
 
     public static function renderGlobalMenu($baseUrl)
     {
         $menu = self::$globalmenu;
-?>
+        ?>
         <div class="row g-2 mb-4">
             <?php foreach ($menu as $m): ?>
                 <div class="col">
@@ -45,23 +56,24 @@ class Stats
                 </div>
             <?php endforeach; ?>
         </div>
-    <?php
+        <?php
     }
 
     public static function renderMenu($baseUrl, $level, $mode)
     {
         $menu = self::$menu[$mode];
-    ?>
+        ?>
         <div class="row g-2 mb-4">
             <?php foreach ($menu as $m): ?>
                 <div class="col">
-                    <a href="<?= $baseUrl ?>&level=<?= $level ?>&action=stats&subaction=<?= $m['subaction'] ?>#content" class="btn btn-info w-100">
+                    <a href="<?= $baseUrl ?>&level=<?= $level ?>&action=stats&subaction=<?= $m['subaction'] ?>#content"
+                        class="btn btn-info w-100">
                         <i class="bi bi-<?= $m['icon'] ?> "></i> <?= $m['label'] ?>
                     </a>
                 </div>
             <?php endforeach; ?>
         </div>
-    <?php
+        <?php
     }
 
     public static function renderGlobalStats($compId, $subaction)
@@ -78,14 +90,14 @@ class Stats
         }
     }
 
-    public static function renderStats($seasonId, $level, $subaction)
+    public static function renderStats($seasonId, $level, $subaction, $mode)
     {
         switch ($subaction) {
             case 'overview':
                 break;
             case 'team_matches':
                 $team = self::renderTeamStats($seasonId, $level, $subaction);
-                self::renderMatchesBySeasonAndTeam($seasonId, $level, $team);
+                self::renderMatchesBySeasonAndTeam($seasonId, $level, $team, $mode);
                 break;
             default:
                 break;
@@ -94,18 +106,19 @@ class Stats
 
     private static function renderGlobalTeamStats($compId, $subaction)
     {
-        $seasons =  DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->first()['id'];
+        $seasons = DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->first()['id'];
 
         $teams = DB::table('season_teams')->select('team_id')->where('season_id', '=', $seasons)->get();
         $teams = array_column($teams, 'team_id');
         $teams = Teams::orderTeamsByName($teams);
 
         $teamSelected = $_POST['team'] ?? '';
-    ?>
-        <form action="index.php?page=competition&id=<?= $compId ?>&action=stats&subaction=<?= $subaction ?>" method="post" class="my-2">
+        ?>
+        <form action="index.php?page=competition&id=<?= $compId ?>&action=stats&subaction=<?= $subaction ?>" method="post"
+            class="my-2">
             <?php self::renderFormStats($teams, $teamSelected) ?>
         </form>
-    <?php
+        <?php
         return $teamSelected;
     }
 
@@ -117,17 +130,18 @@ class Stats
         $teams = Teams::orderTeamsByName($teams);
 
         $teamSelected = $_POST['team'] ?? '';
-    ?>
-        <form action="index.php?page=season&id=<?= $seasonId ?>&level=<?= $level ?>&action=stats&subaction=<?= $subaction ?>" method="post" class="my-2">
+        ?>
+        <form action="index.php?page=season&id=<?= $seasonId ?>&level=<?= $level ?>&action=stats&subaction=<?= $subaction ?>"
+            method="post" class="my-2">
             <?php self::renderFormStats($teams, $teamSelected) ?>
         </form>
-    <?php
+        <?php
         return $teamSelected;
     }
 
     private static function renderFormStats($teams, $teamSelected)
     {
-    ?>
+        ?>
         <div class="row">
             <div class="col form-group">
                 <label for="team">Squadra</label>
@@ -144,20 +158,21 @@ class Stats
                 <button type="submit" class="btn btn-primary mt-auto w-100">Invia</button>
             </div>
         </div>
-    <?php
+        <?php
     }
 
     private static function renderTeamHistoryByCompetition($compId, $team)
     {
-        if (empty($team)) return;
-        $seasons =  DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->where('status', '=', '2')->get();
+        if (empty($team))
+            return;
+        $seasons = DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->where('status', '=', '2')->get();
         $seasons = array_column($seasons, 'id');
         $bestYear = $badYear = [
             'year' => 0,
             'level' => 0,
             'position' => 0,
         ];
-    ?>
+        ?>
         <div class="table-responsive my-5">
             <table class="table table-hover align-middle shadow-sm text-center">
                 <thead class="table-dark">
@@ -182,29 +197,32 @@ class Stats
                         $ico = '';
 
                         $isPromoted = (bool) ($position <= ($comp_level['promotion_spots']));
-                        if ($isPromoted) $ico = '<i class="bi bi-arrow-up text-success"></i>';
+                        if ($isPromoted)
+                            $ico = '<i class="bi bi-arrow-up text-success"></i>';
 
                         $isRelegated = (bool) ($position > ($numTeams - $comp_level['relegation_spots']));
-                        if ($isRelegated) $ico = '<i class="bi bi-arrow-down text-danger"></i>';
+                        if ($isRelegated)
+                            $ico = '<i class="bi bi-arrow-down text-danger"></i>';
 
                         $isChampion = (bool) ($position == 1 && $level == 1);
-                        if ($isChampion) $ico = '<i class="bi bi-trophy text-warning"></i>';
+                        if ($isChampion)
+                            $ico = '<i class="bi bi-trophy text-warning"></i>';
                         ?>
                         <tr>
                             <td><?= $year ?></td>
                             <td><?= $level ?></td>
-                            <td><?= $position ?> <?= $ico ?></td>
+                            <td><?= $position ?>             <?= $ico ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
 
-            <div class="row g-4">
-                <?php self::renderYearCard($bestYear, 'best'); ?>
-                <?php self::renderYearCard($badYear, 'worst'); ?>
-            </div>
-    <?php
+        <div class="row g-4">
+            <?php self::renderYearCard($bestYear, 'best'); ?>
+            <?php self::renderYearCard($badYear, 'worst'); ?>
+        </div>
+        <?php
     }
 
     private static function calculateYear($current, $year, $level, $position, $mode = 'best')
@@ -242,10 +260,11 @@ class Stats
         $level = $data['level'] ?? '-';
         $position = $data['position'] ?? '-';
 
-    ?>
+        ?>
         <div class="col-md-6">
             <div class="card h-100 shadow-sm border-0">
-                <div class="card-header bg-<?= $color ?> bg-gradient text-white d-flex justify-content-between align-items-center">
+                <div
+                    class="card-header bg-<?= $color ?> bg-gradient text-white d-flex justify-content-between align-items-center">
                     <span><i class="bi <?= $icon ?>"></i> <?= $title ?></span>
                     <span class="badge bg-light text-<?= $color ?> fw-bold">
                         <?= $year ?>
@@ -269,25 +288,29 @@ class Stats
                 </div>
             </div>
         </div>
-    <?php
+        <?php
     }
 
-    private static function renderMatchesBySeasonAndTeam($seasonId, $level, $team)
+    private static function renderMatchesBySeasonAndTeam($seasonId, $level, $team, $mode)
     {
-        if (empty($team)) return;
+        if (empty($team))
+            return;
         $matches = DB::table('matches')
             ->where('season_id', '=', $seasonId)
             ->where('level', '=', $level)
             ->whereRaw("(team_home_id = :team OR team_away_id = :team)", [
                 'team' => $team
-            ])->orderBy('round', 'ASC')->get();
-    ?>
+            ])->orderBy('phase', 'DESC')->orderBy('round', 'ASC')->get();
+        ?>
 
         <?php if (!empty($matches)): ?>
             <div class="table-responsive my-5">
                 <table class="table table-hover align-middle shadow-sm text-center">
                     <thead class="table-dark">
                         <tr>
+                            <?php if ($mode == 2): ?>
+                                <th>Fase</th>
+                            <?php endif; ?>
                             <th>Giornata</th>
                             <th>Incontro</th>
                             <th>Risultato</th>
@@ -307,9 +330,16 @@ class Stats
                             } elseif (($isHome && $AwayWin) || ($isAway && $homeWin)) {
                                 $class = 'danger';
                             }
+                            $nameRound = $match['round'];
+                            if ($mode == 2){
+                                $nameRound = ($match['round'] == 1) ? 'Andata' : 'Ritorno';
+                            }
                             ?>
                             <tr>
-                                <td><?= $match['round'] ?></td>
+                                <?php if ($mode == 2): ?>
+                                    <td><?= Competitions::$round_names[$match['phase'] - 1] ?></td>
+                                <?php endif; ?>
+                                <td><?= $nameRound ?></td>
                                 <td>
                                     <div>
                                         <?php Teams::renderTeams($match['team_home_id'], 'px-2 rounded-pill d-inline-block small') ?>
@@ -322,7 +352,8 @@ class Stats
                                 </td>
                                 <td>
                                     <div class="d-flex justify-content-center gap-1">
-                                        <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2" title="Visualizza Incontro">👁️</a>
+                                        <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2"
+                                            title="Visualizza Incontro">👁️</a>
                                     </div>
                                 </td>
                             </tr>
@@ -333,6 +364,6 @@ class Stats
         <?php else: ?>
             <?php Alert::generateAlert('Nessun Incontro trovato in questa stagione', 'warning', 'Nessun Incontro trovato') ?>
         <?php endif; ?>
-<?php
+    <?php
     }
 }

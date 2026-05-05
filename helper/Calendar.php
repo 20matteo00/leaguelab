@@ -144,12 +144,18 @@ class Calendar
         $anchor = ($phase) ? 'phase-' . $phase . '-round-' . $round : 'round-' . $round;
         // Costruisci il prefisso del round contestuale alla fase
         $roundKey = ($phase !== null) ? $phase . '_' . $round : $round;
+
+        $nameDay = 'Giornata ' . $round ;
+        if ($phase){
+            $nameDay = ($round == 1) ? 'Andata' : 'Ritorno';
+        }
+
         ?>
         <?php $roundIdsStr = implode(',', array_column($roundMatches, 'id')); ?>
         <div class="col-12 col-lg-6">
             <div class="card shadow-sm border-0 h-100" id="<?= $anchor ?>">
                 <div class="card-header bg-primary text-white text-center fw-bold">
-                    Giornata <?= $round ?>
+                    <?= $nameDay ?>
                 </div>
                 <div class="card-body">
                     <?php foreach ($roundMatches as $match): ?>

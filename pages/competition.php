@@ -1,6 +1,7 @@
 <?php
 $id = $_GET['id'] ?? null;
-if ($id === null) return;
+if ($id === null)
+    return;
 
 $competition = DB::table('competitions')->where('id', '=', $id)->first();
 $lastSeasonEnd = Seasons::getMaxSeasonEndByCompetition($id);
@@ -25,10 +26,10 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
     <?php if ($competition): ?>
 
         <?php
-        $logo         = null;
-        $images       = !empty($competition['images']) ? json_decode($competition['images'], true) : [];
-        $logo         = $images['logo'] ?? null;
-        $mode         = (int)$competition['modality'];
+        $logo = null;
+        $images = !empty($competition['images']) ? json_decode($competition['images'], true) : [];
+        $logo = $images['logo'] ?? null;
+        $mode = (int) $competition['modality'];
 
         // Livelli (solo campionato)
         $levels = [];
@@ -51,8 +52,7 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
         <div class="row my-3 g-3 align-items-center">
             <?php if ($logo): ?>
                 <div class="col-auto">
-                    <img src="<?= htmlspecialchars($logo) ?>"
-                        alt="<?= htmlspecialchars($competition['name']) ?>"
+                    <img src="<?= htmlspecialchars($logo) ?>" alt="<?= htmlspecialchars($competition['name']) ?>"
                         style="height:80px" class="rounded">
                 </div>
             <?php endif; ?>
@@ -66,7 +66,8 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
             <div class="row g-2 mb-4">
                 <?php for ($i = 1; $i <= $maxLevel; $i++): ?>
                     <div class="col">
-                        <a href="<?= $baseUrl ?>&level=<?= $i ?>&action=<?= $action ?>#content" class="btn btn-primary w-100 p-2 fs-1">
+                        <a href="<?= $baseUrl ?>&level=<?= $i ?>&action=<?= $action ?>#content"
+                            class="btn btn-primary w-100 p-2 fs-1">
                             <i class="bi bi-<?= $i ?>-circle me-2"></i> Livello
                         </a>
                     </div>
@@ -80,9 +81,9 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
             <?php
             switch ($action) {
                 case 'overview':
-                    if ($lastSeasonEnd) : ?>
+                    if ($lastSeasonEnd): ?>
                         <a href="<?= $baseUrl ?>&action=continue" class="btn btn-success fw-bold p-3 w-100">Continua Competizione</a>
-            <?php endif;
+                    <?php endif;
                     Competitions::rendeOverview($competition, $levels, $seasons, $id);
                     break;
 
@@ -91,15 +92,15 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
                     break;
 
                 case 'hall_of_fame':
-                    Standings::renderHallOfFame($id, $level);
+                    $mode == 1 ? Standings::renderHallOfFame($id, $level) : Standings::renderHallOfFameKnockout($id, $level);
                     break;
 
                 case 'all_time_markers':
-                    Markers::renderAllTimeMarkers($id, $level, 20);
+                    Markers::renderAllTimeMarkers($id, $level, 10);
                     break;
 
                 case 'head_to_head':
-                    Matches::renderMatchesByTeamsAndComp($id);
+                    Matches::renderMatchesByTeamsAndComp($id, $mode);
                     break;
 
                 case 'stats':

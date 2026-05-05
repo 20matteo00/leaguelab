@@ -124,7 +124,7 @@ $draws = Matches::getDraws($id);
             case 'stats':
                 Stats::renderMenu($baseUrl, $level, $mode);
                 $subaction = $_GET['subaction'] ?? 'overview';
-                Stats::renderStats($id, $level, $subaction);
+                Stats::renderStats($id, $level, $subaction, $mode);
                 break;
             case 'nextphase':
                 Matches::generateNextPhase($id, $round_trip);
