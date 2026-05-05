@@ -17,6 +17,7 @@ $page = $_GET['page'] ?? null;
 </head>
 
 <body>
+    <span id="top"></span>
     <?php
     Layout::renderMenu($title);
     ob_start();
@@ -25,6 +26,22 @@ $page = $_GET['page'] ?? null;
     }
     ob_end_flush();
     ?>
+    <span id="bottom"></span>
+    <div class="position-fixed bottom-0 end-0 p-3 d-flex flex-column gap-2" style="z-index: 1050;">
+
+        <!-- Su -->
+        <a href="#top" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
+            style="width:45px;height:45px;">
+            <i class="bi bi-arrow-up"></i>
+        </a>
+
+        <!-- Giù -->
+        <a href="#bottom" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
+            style="width:45px;height:45px;">
+            <i class="bi bi-arrow-down"></i>
+        </a>
+
+    </div>
 </body>
 
 </html>

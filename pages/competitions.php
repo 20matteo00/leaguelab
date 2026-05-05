@@ -31,6 +31,8 @@ $states     = Field::getStates();
 $modality   = Field::getModality();
 $sortsParam = json_encode($sorts);
 
+$num_levels = 1;
+$num_groups = 0;
 // Competition corrente per edit
 $competition = null;
 if ($action === 'edit' && $id) {
@@ -653,9 +655,10 @@ $linkExtra = [
                                 <td><?= Seasons::getLastSeason($competition['id'])['season_year'] ?? 'Non Iniziata' ?></td>
                                 <td>
                                     <div class="d-flex gap-1 justify-content-center">
+                                        <?php if ($stagione_esistente != 0): ?>
                                         <a href="index.php?page=competition&id=<?= $competition['id'] ?>"
                                             class="btn btn-sm btn-outline-success" title="Visualizza">👁️</a>
-                                        <?php if ($stagione_esistente == 0): ?>
+                                        <?php else: ?>
                                             <a href="index.php?page=competitions&action=configure&id=<?= $competition['id'] ?>"
                                                 class="btn btn-sm btn-outline-success" title="Configura">⚙️</a>
                                             <a href="index.php?page=competitions&action=edit&id=<?= $competition['id'] ?>"

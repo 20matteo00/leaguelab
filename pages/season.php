@@ -41,7 +41,7 @@ $draws = Matches::getDraws($id);
 
 ?>
 
-<div class="container my-4" id="season">
+<div class="container-fluid px-5 my-4" id="season">
 
     <?php if ($matchesNull === 0 && !$isEndedSeason): ?>
         <?php if ($mode == 1): ?>

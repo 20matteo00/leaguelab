@@ -37,7 +37,7 @@ class Calendar
         $matches = DB::table('matches')
             ->where('season_id', '=', $seasonId)
             ->where('level', '=', $level)
-            ->orderBy('phase', 'DESC')
+            ->orderBy('phase', 'ASC')
             ->orderBy('round')
             ->get();
 

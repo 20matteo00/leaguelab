@@ -31,6 +31,11 @@ class Competitions
                 'label' => 'Scontri Diretti'
             ],
             [
+                'action' => 'head_to_head_advanced',
+                'icon' => 'shield',
+                'label' => 'Mini Gruppi'
+            ],
+            [
                 'action' => 'stats',
                 'icon' => 'bar-chart',
                 'label' => 'Statistiche'
@@ -57,6 +62,11 @@ class Competitions
                 'action' => 'head_to_head',
                 'icon' => 'shield',
                 'label' => 'Scontri Diretti'
+            ],
+            [
+                'action' => 'head_to_head_advanced',
+                'icon' => 'shield',
+                'label' => 'Mini Gruppi'
             ],
             [
                 'action' => 'stats',

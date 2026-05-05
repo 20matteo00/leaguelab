@@ -22,7 +22,7 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
 
 ?>
 
-<div class="container my-4">
+<div class="container-fluid px-5 my-4">
     <?php if ($competition): ?>
 
         <?php
@@ -46,6 +46,10 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
             ->orderBy('season_year', 'DESC')
             ->get();
 
+        $num_seasons = count($seasons);
+        $minGoalMarkersVisible = 0;
+        if ($mode == 1) $minGoalMarkersVisible = $num_seasons * 10;
+        elseif ($mode == 2) $minGoalMarkersVisible = $num_seasons * 3;
         ?>
 
         <!-- ── HEADER ──────────────────────────────────────────────────────────── -->
@@ -96,11 +100,15 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
                     break;
 
                 case 'all_time_markers':
-                    Markers::renderAllTimeMarkers($id, $level, 10);
+                    Markers::renderAllTimeMarkers($id, $level, $minGoalMarkersVisible);
                     break;
 
                 case 'head_to_head':
                     Matches::renderMatchesByTeamsAndComp($id, $mode);
+                    break;
+
+                case 'head_to_head_advanced':
+                    Matches::renderMatchesByTeamsAndCompAdvanced($id, $mode);
                     break;
 
                 case 'stats':

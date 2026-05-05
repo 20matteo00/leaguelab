@@ -165,6 +165,29 @@ class Seasons
             ->first();
     }
 
+    public static function getSeasonByTeamLevel($seasons, $team, $level, $type)
+    {
+        $id = null;
+        if ($type == 'first') {
+            $id = DB::table('season_teams')
+                ->select('MIN(season_id) as season_id')
+                ->whereIn('season_id', $seasons)
+                ->where('level', '=', $level)
+                ->where('team_id', '=', $team)
+                ->first()['season_id'];
+        } elseif ($type == 'last') {
+            $id = DB::table('season_teams')
+                ->select('MAX(season_id) as season_id')
+                ->whereIn('season_id', $seasons)
+                ->where('level', '=', $level)
+                ->where('team_id', '=', $team)
+                ->first()['season_id'];
+        }
+        $year = 0;
+        if ($id) $year = DB::table('seasons')->select('season_year')->where('id', '=', $id)->first()['season_year'];
+        return $year;
+    }
+
     public static function seasonContinue($compId)
     {
         $lastSeason = self::getLastSeason($compId);
