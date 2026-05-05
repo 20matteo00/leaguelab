@@ -42,9 +42,9 @@ class Calendar
             ->get();
 
         $grouped = self::groupMatches($matches, $mode);
-        
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $parsed = self::parseCalendarPost($_POST, $grouped);
+            $parsed = self::parseCalendarPost($_POST, $grouped, $mode);
 
             if ($_POST['action'] == 'simulate_all')
                 self::simulateAllMatchesBySeason($seasonId, $level);
@@ -59,13 +59,23 @@ class Calendar
                 };
                 Events::generatePlayersStatsForMatches($parsed['ids']);
             }
-
-
-            $anchor = $parsed['round'] !== null ? '#round-' . $parsed['round'] : '';
+            if ($parsed['round'] !== null) {
+                $anchor = $parsed['phase'] !== null
+                    ? '#phase-' . $parsed['phase'] . '-round-' . $parsed['round']
+                    : '#round-' . $parsed['round'];
+            } else {
+                $anchor = '';
+            }
             header("Location: index.php?page=season&id=" . $seasonId . "&level=" . $level . "&action=calendar" . $anchor);
             exit;
         }
+        // PRIMA (rotto per mode 2/3):
         $allIds = array_column(array_merge(...array_values($grouped)), 'id');
+
+        // DOPO:
+        $flatByRound = self::flattenGrouped($grouped, $mode);
+        $allMatches = array_merge(...array_values($flatByRound));
+        $allIds = array_column($allMatches, 'id');
         $allIdsStr = implode(',', $allIds);
 
         $isEnded = Seasons::checkSeasonEnd($seasonId);
@@ -132,6 +142,8 @@ class Calendar
     private static function renderDays($roundMatches, $round, $isEnded, $phase = null, $isMinPhase = true)
     {
         $anchor = ($phase) ? 'phase-' . $phase . '-round-' . $round : 'round-' . $round;
+        // Costruisci il prefisso del round contestuale alla fase
+        $roundKey = ($phase !== null) ? $phase . '_' . $round : $round;
         ?>
         <?php $roundIdsStr = implode(',', array_column($roundMatches, 'id')); ?>
         <div class="col-12 col-lg-6">
@@ -186,11 +198,11 @@ class Calendar
                 <!-- FOOTER GIORNATA -->
                 <div class="card-footer d-flex gap-2 justify-content-end">
                     <?php if (!$isEnded && $isMinPhase): ?>
-                        <button type="submit" name="action" value="save_round_<?= $round ?>" class="btn btn-success btn-sm"
+                        <button type="submit" name="action" value="save_round_<?= $roundKey ?>" class="btn btn-success btn-sm"
                             title="Salva Giornata">💾 Salva</button>
-                        <button type="submit" name="action" value="simulate_round_<?= $round ?>" class="btn btn-warning btn-sm"
+                        <button type="submit" name="action" value="simulate_round_<?= $roundKey ?>" class="btn btn-warning btn-sm"
                             title="Simula Giornata">⚡ Simula</button>
-                        <button type="submit" name="action" value="delete_round_<?= $round ?>" class="btn btn-danger btn-sm"
+                        <button type="submit" name="action" value="delete_round_<?= $roundKey ?>" class="btn btn-danger btn-sm"
                             title="Resetta Giornata">✕ Resetta</button>
                     <?php endif; ?>
                 </div>
@@ -199,52 +211,77 @@ class Calendar
 
         <?php
     }
-    private static function parseCalendarPost(array $post, array $grouped): array
+    private static function parseCalendarPost(array $post, array $grouped, int $mode): array
     {
         $action = $post['action'] ?? '';
         $allIds = array_filter(explode(',', $post['match_ids'] ?? ''));
 
-        // Singola partita → save_one_123 / simulate_one_123 / delete_one_123
+        // Normalizza grouped → sempre [round => [matches]]
+        // indipendentemente dal mode
+        $flatByRound = self::flattenGrouped($grouped, $mode);
+
+        // Per save_one_X: cerca anche la phase
         if (preg_match('/^(save|simulate|delete)_one_(\d+)$/', $action, $m)) {
-            // Trova il round della partita cercando nei grouped
             $round = null;
-            foreach ($grouped as $r => $roundMatches) {
+            $phase = null;
+            foreach ($flatByRound as $key => $roundMatches) {
                 foreach ($roundMatches as $match) {
                     if ((int) $match['id'] === (int) $m[2]) {
-                        $round = $r;
+                        if (str_contains((string) $key, '_')) {
+                            [$phase, $round] = explode('_', $key);
+                            $phase = (int) $phase;
+                            $round = (int) $round;
+                        } else {
+                            $round = (int) $key;
+                        }
                         break 2;
                     }
                 }
             }
-            return [
-                'action' => $m[1],
-                'ids' => [(int) $m[2]],
-                'post' => $post,
-                'round' => $round,
-            ];
+            return ['action' => $m[1], 'ids' => [(int) $m[2]], 'post' => $post, 'round' => $round, 'phase' => $phase];
         }
 
-        // Giornata → save_round_3 / simulate_round_3 / delete_round_3
-        if (preg_match('/^(save|simulate|delete)_round_(\d+)$/', $action, $m)) {
-            return [
-                'action' => $m[1],
-                'ids' => array_column($grouped[(int) $m[2]], 'id'),
-                'post' => $post,
-                'round' => (int) $m[2],
-            ];
+        // Per save_round_X o save_round_2_1
+        if (preg_match('/^(save|simulate|delete)_round_([\d_]+)$/', $action, $m)) {
+            $key = $m[2];
+            $phase = null;
+            if (str_contains($key, '_')) {
+                [$phaseStr, $roundStr] = explode('_', $key);
+                $phase = (int) $phaseStr;
+                $roundNum = (int) $roundStr;
+            } else {
+                $roundNum = (int) $key;
+            }
+            $roundMatches = $flatByRound[$key] ?? [];
+            return ['action' => $m[1], 'ids' => array_column($roundMatches, 'id'), 'post' => $post, 'round' => $roundNum, 'phase' => $phase];
         }
 
-        // Livello intero → nessun round specifico
+        // Per save_level
         if (preg_match('/^(save|simulate|delete)_level$/', $action, $m)) {
-            return [
-                'action' => $m[1],
-                'ids' => array_map('intval', $allIds),
-                'post' => $post,
-                'round' => null,
-            ];
+            return ['action' => $m[1], 'ids' => array_map('intval', $allIds), 'post' => $post, 'round' => null, 'phase' => null];
         }
 
-        return ['action' => null, 'ids' => [], 'post' => $post, 'round' => null];
+        return ['action' => null, 'ids' => [], 'post' => $post, 'round' => null, 'phase' => null];
+    }
+
+    // Appiattisce qualsiasi struttura grouped in [round => [matches]]
+    private static function flattenGrouped(array $grouped, int $mode): array
+    {
+        if ($mode === 1) {
+            return $grouped; // già [round => [matches]]
+        }
+
+        // mode 2 e 3: primo livello è phase/group, secondo è round
+        $flat = [];
+        foreach ($grouped as $outer => $rounds) {
+            foreach ($rounds as $round => $matches) {
+                // Se lo stesso round appare in più fasi (raro ma possibile),
+                // usiamo una chiave composta per non sovrascrivere
+                $key = ($mode === 2) ? $outer . '_' . $round : $round;
+                $flat[$key] = array_merge($flat[$key] ?? [], $matches);
+            }
+        }
+        return $flat;
     }
 
     private static function saveMatches(array $ids, array $post): void

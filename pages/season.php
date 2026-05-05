@@ -47,7 +47,7 @@ $draws = Matches::getDraws($id);
         <?php if ($mode == 1): ?>
             <a href="<?= $baseUrl ?>&action=end" class="btn btn-warning fw-bold p-3 w-100">Chiudi Stagione</a>
         <?php elseif ($mode == 2): ?>
-            <?php if ($finalPhase): ?>
+            <?php if ($finalPhase && empty($draws)): ?>
                 <a href="<?= $baseUrl ?>&action=end" class="btn btn-warning fw-bold p-3 w-100">Chiudi Stagione</a>
             <?php else: ?>
                 <?php if (empty($draws)): ?>

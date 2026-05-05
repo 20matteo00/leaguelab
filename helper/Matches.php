@@ -29,7 +29,7 @@ class Matches
                 break;
 
             case '2':
-                $matches = self::generateknockout($teams, $round_trip);
+                $matches = self::generateKnockout($teams, $round_trip);
                 self::insertMatches($matches, $seasonId, 'knockout');
             default:
                 break;
@@ -239,6 +239,8 @@ class Matches
         $hasPhaseOne = DB::table('matches')
             ->where('season_id', '=', $seasonId)
             ->where('phase', '=', 1)
+            ->whereNotNull('score_home')   // aggiunto
+            ->whereNotNull('score_away')   // aggiunto
             ->exists();
 
         if ($hasPhaseOne) {
@@ -305,9 +307,6 @@ class Matches
                 $winners[] = $pair['teamA'];
             } elseif ($pair['scoreB'] > $pair['scoreA']) {
                 $winners[] = $pair['teamB'];
-            } else {
-                // gestione pareggio
-                $winners[] = $pair['teamA']; // o random/rigori
             }
         }
 
@@ -415,191 +414,191 @@ class Matches
             }
         }
         ?>
-                <div class="container">
-                    <form method="post" action="" class="head-to-head-form my-4">
-                        <div class="row">
-                            <div class="col form-group">
-                                <label for="team1">Squadra 1</label>
-                                <select name="team1" id="team1" class="form-control">
-                                    <option value="">-- Scegli --</option>
-                                    <?php foreach ($teams as $key => $team): ?>
-                                            <option value="<?= $key ?>" <?= ($key == $teamHome) ? 'selected' : '' ?>>
-                                                <?php Teams::renderTeams($key) ?>
-                                            </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+        <div class="container">
+            <form method="post" action="" class="head-to-head-form my-4">
+                <div class="row">
+                    <div class="col form-group">
+                        <label for="team1">Squadra 1</label>
+                        <select name="team1" id="team1" class="form-control">
+                            <option value="">-- Scegli --</option>
+                            <?php foreach ($teams as $key => $team): ?>
+                                <option value="<?= $key ?>" <?= ($key == $teamHome) ? 'selected' : '' ?>>
+                                    <?php Teams::renderTeams($key) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-                            <div class="col form-group">
-                                <label for="team2">Squadra 2</label>
-                                <select name="team2" id="team2" class="form-control">
-                                    <option value="">-- Scegli --</option>
-                                    <?php foreach ($teams as $key => $team): ?>
-                                            <option value="<?= $key ?>" <?= ($key == $teamAway) ? 'selected' : '' ?>>
-                                                <?php Teams::renderTeams($key) ?>
-                                            </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+                    <div class="col form-group">
+                        <label for="team2">Squadra 2</label>
+                        <select name="team2" id="team2" class="form-control">
+                            <option value="">-- Scegli --</option>
+                            <?php foreach ($teams as $key => $team): ?>
+                                <option value="<?= $key ?>" <?= ($key == $teamAway) ? 'selected' : '' ?>>
+                                    <?php Teams::renderTeams($key) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-                            <div class="col form-group">
-                                <label for="location">Luogo</label>
-                                <select name="location" id="location" class="form-control">
-                                    <option value="all" <?= ($location == 'all') ? 'selected' : '' ?>>Casa + Trasferta</option>
-                                    <option value="home" <?= ($location == 'home') ? 'selected' : '' ?>>Casa Squadra 1</option>
-                                    <option value="away" <?= ($location == 'away') ? 'selected' : '' ?>>Casa Squadra 2</option>
-                                </select>
-                            </div>
+                    <div class="col form-group">
+                        <label for="location">Luogo</label>
+                        <select name="location" id="location" class="form-control">
+                            <option value="all" <?= ($location == 'all') ? 'selected' : '' ?>>Casa + Trasferta</option>
+                            <option value="home" <?= ($location == 'home') ? 'selected' : '' ?>>Casa Squadra 1</option>
+                            <option value="away" <?= ($location == 'away') ? 'selected' : '' ?>>Casa Squadra 2</option>
+                        </select>
+                    </div>
 
-                            <div class="col form-group">
-                                <label for="level">Livello</label>
-                                <select name="level" id="level" class="form-control">
-                                    <option value="all" <?= ($level == 'all') ? 'selected' : '' ?>>Tutti</option>
-                                    <?php for ($i = 1; $i <= $maxLevel; $i++): ?>
-                                            <option value="<?= $i ?>" <?= ($level == $i) ? 'selected' : '' ?>>
-                                                Livello <?= $i ?>
-                                            </option>
-                                    <?php endfor; ?>
-                                </select>
-                            </div>
+                    <div class="col form-group">
+                        <label for="level">Livello</label>
+                        <select name="level" id="level" class="form-control">
+                            <option value="all" <?= ($level == 'all') ? 'selected' : '' ?>>Tutti</option>
+                            <?php for ($i = 1; $i <= $maxLevel; $i++): ?>
+                                <option value="<?= $i ?>" <?= ($level == $i) ? 'selected' : '' ?>>
+                                    Livello <?= $i ?>
+                                </option>
+                            <?php endfor; ?>
+                        </select>
+                    </div>
 
-                            <div class="col form-group">
-                                <label for="order">Ordine</label>
-                                <select name="order" id="order" class="form-control">
-                                    <option value="oldest_first" <?= ($order == 'oldest_first') ? 'selected' : '' ?>>
-                                        Prima il più vecchio
-                                    </option>
-                                    <option value="newest_first" <?= ($order == 'newest_first') ? 'selected' : '' ?>>
-                                        Prima il più recente
-                                    </option>
-                                </select>
-                            </div>
+                    <div class="col form-group">
+                        <label for="order">Ordine</label>
+                        <select name="order" id="order" class="form-control">
+                            <option value="oldest_first" <?= ($order == 'oldest_first') ? 'selected' : '' ?>>
+                                Prima il più vecchio
+                            </option>
+                            <option value="newest_first" <?= ($order == 'newest_first') ? 'selected' : '' ?>>
+                                Prima il più recente
+                            </option>
+                        </select>
+                    </div>
 
-                            <div class="col form-group d-flex">
-                                <button type="submit" class="btn btn-primary mt-auto w-100">Invia</button>
-                            </div>
-                        </div>
-                    </form>
-                    <?php if (!empty($matches)): ?>
-                            <div class="table-responsive my-5">
-                                <table class="table table-hover align-middle shadow-sm text-center">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>Anno</th>
-                                            <th>Livello</th>
-                                            <th>Giornata</th>
-                                            <th>Incontro</th>
-                                            <th>Risultato</th>
-                                            <th>Esito</th>
-                                            <th>Dettaglio</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($matches as $match): ?>
-                                                <?php
-                                                $season_year = DB::table('seasons')->select('season_year')->where('id', '=', $match['season_id'])->first()['season_year'];
-                                                $class = 'warning';
-                                                $esito = 'X';
-                                                if ($match['score_home'] > $match['score_away']) {
-                                                    $class = 'success';
-                                                    $esito = '1';
-                                                } elseif ($match['score_home'] < $match['score_away']) {
-                                                    $class = 'danger';
-                                                    $esito = '2';
-                                                }
-                                                ?>
-                                                <tr>
-                                                    <td><?= $season_year ?></td>
-                                                    <td><?= $match['level'] ?></td>
-                                                    <td><?= $match['round'] ?></td>
-                                                    <td>
-                                                        <div>
-                                                            <?php Teams::renderTeams($match['team_home_id'], 'px-2 rounded-pill d-inline-block small') ?>
-                                                            Vs
-                                                            <?php Teams::renderTeams($match['team_away_id'], 'px-2 rounded-pill d-inline-block small') ?>
-                                                        </div>
-                                                    </td>
-                                                    <td class="text-<?= $class ?>">
-                                                        <?= $match['score_home'] ?> - <?= $match['score_away'] ?>
-                                                    </td>
-                                                    <td class="text-<?= $class ?>"><?= $esito ?></td>
-                                                    <td>
-                                                        <div class="d-flex justify-content-center gap-1">
-                                                            <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2"
-                                                                title="Visualizza Incontro">👁️</a>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <?php
-                            $teams = [
-                                $teamHome => DB::table('teams')->select('name')->where('id', '=', $teamHome)->first(),
-                                $teamAway => DB::table('teams')->select('name')->where('id', '=', $teamAway)->first(),
-                            ];
-                            $standings = Standings::buildStandings($matches, $teams, 'all');
-                            ?>
-                            <div class="row">
-                                <?php foreach ($standings as $teamId => $stats): ?>
-                                        <div class="col-md-6 mb-3">
-                                            <div class="card shadow-sm">
-                                                <!-- HEADER -->
-                                                <div class="card-header bg-dark text-white text-center">
-                                                    <strong>
-                                                        <?php Teams::renderTeams($stats['team_id'], 'px-2 rounded-pill d-inline-block small') ?>
-                                                    </strong>
-                                                </div>
-                                                <!-- BODY -->
-                                                <div class="card-body">
-                                                    <ul class="list-group list-group-flush">
-                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                            <span>Giocate</span>
-                                                            <span class="badge bg-secondary"><?= $stats['played'] ?></span>
-                                                        </li>
-
-                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                            <span>Vinte</span>
-                                                            <span class="badge bg-success"><?= $stats['won'] ?></span>
-                                                        </li>
-
-                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                            <span>Pari</span>
-                                                            <span class="badge bg-warning text-dark"><?= $stats['drawn'] ?></span>
-                                                        </li>
-
-                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                            <span>Perse</span>
-                                                            <span class="badge bg-danger"><?= $stats['lost'] ?></span>
-                                                        </li>
-
-                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                            <span>Gol fatti</span>
-                                                            <span class="badge bg-success"><?= $stats['gf'] ?></span>
-                                                        </li>
-
-                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                            <span>Gol subiti</span>
-                                                            <span class="badge bg-danger"><?= $stats['ga'] ?></span>
-                                                        </li>
-
-                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                            <span>Differenza Reti</span>
-                                                            <span class="badge <?= $stats['gd'] >= 0 ? 'bg-success' : 'bg-danger' ?>">
-                                                                <?= $stats['gd'] ?>
-                                                            </span>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
+                    <div class="col form-group d-flex">
+                        <button type="submit" class="btn btn-primary mt-auto w-100">Invia</button>
+                    </div>
+                </div>
+            </form>
+            <?php if (!empty($matches)): ?>
+                <div class="table-responsive my-5">
+                    <table class="table table-hover align-middle shadow-sm text-center">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Anno</th>
+                                <th>Livello</th>
+                                <th>Giornata</th>
+                                <th>Incontro</th>
+                                <th>Risultato</th>
+                                <th>Esito</th>
+                                <th>Dettaglio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($matches as $match): ?>
+                                <?php
+                                $season_year = DB::table('seasons')->select('season_year')->where('id', '=', $match['season_id'])->first()['season_year'];
+                                $class = 'warning';
+                                $esito = 'X';
+                                if ($match['score_home'] > $match['score_away']) {
+                                    $class = 'success';
+                                    $esito = '1';
+                                } elseif ($match['score_home'] < $match['score_away']) {
+                                    $class = 'danger';
+                                    $esito = '2';
+                                }
+                                ?>
+                                <tr>
+                                    <td><?= $season_year ?></td>
+                                    <td><?= $match['level'] ?></td>
+                                    <td><?= $match['round'] ?></td>
+                                    <td>
+                                        <div>
+                                            <?php Teams::renderTeams($match['team_home_id'], 'px-2 rounded-pill d-inline-block small') ?>
+                                            Vs
+                                            <?php Teams::renderTeams($match['team_away_id'], 'px-2 rounded-pill d-inline-block small') ?>
                                         </div>
-                                <?php endforeach; ?>
-                            </div>
-                    <?php elseif (empty($matches) && ($validTeams)): ?>
-                            <?php Alert::generateAlert('Nessun Incontro tra le 2 squadre in questa competizione', 'warning', 'Nessun Incontro') ?>
-                    <?php endif; ?>
+                                    </td>
+                                    <td class="text-<?= $class ?>">
+                                        <?= $match['score_home'] ?> - <?= $match['score_away'] ?>
+                                    </td>
+                                    <td class="text-<?= $class ?>"><?= $esito ?></td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2"
+                                                title="Visualizza Incontro">👁️</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
                 <?php
+                $teams = [
+                    $teamHome => DB::table('teams')->select('name')->where('id', '=', $teamHome)->first(),
+                    $teamAway => DB::table('teams')->select('name')->where('id', '=', $teamAway)->first(),
+                ];
+                $standings = Standings::buildStandings($matches, $teams, 'all');
+                ?>
+                <div class="row">
+                    <?php foreach ($standings as $teamId => $stats): ?>
+                        <div class="col-md-6 mb-3">
+                            <div class="card shadow-sm">
+                                <!-- HEADER -->
+                                <div class="card-header bg-dark text-white text-center">
+                                    <strong>
+                                        <?php Teams::renderTeams($stats['team_id'], 'px-2 rounded-pill d-inline-block small') ?>
+                                    </strong>
+                                </div>
+                                <!-- BODY -->
+                                <div class="card-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>Giocate</span>
+                                            <span class="badge bg-secondary"><?= $stats['played'] ?></span>
+                                        </li>
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>Vinte</span>
+                                            <span class="badge bg-success"><?= $stats['won'] ?></span>
+                                        </li>
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>Pari</span>
+                                            <span class="badge bg-warning text-dark"><?= $stats['drawn'] ?></span>
+                                        </li>
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>Perse</span>
+                                            <span class="badge bg-danger"><?= $stats['lost'] ?></span>
+                                        </li>
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>Gol fatti</span>
+                                            <span class="badge bg-success"><?= $stats['gf'] ?></span>
+                                        </li>
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>Gol subiti</span>
+                                            <span class="badge bg-danger"><?= $stats['ga'] ?></span>
+                                        </li>
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>Differenza Reti</span>
+                                            <span class="badge <?= $stats['gd'] >= 0 ? 'bg-success' : 'bg-danger' ?>">
+                                                <?= $stats['gd'] ?>
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php elseif (empty($matches) && ($validTeams)): ?>
+                <?php Alert::generateAlert('Nessun Incontro tra le 2 squadre in questa competizione', 'warning', 'Nessun Incontro') ?>
+            <?php endif; ?>
+        </div>
+        <?php
     }
 }
