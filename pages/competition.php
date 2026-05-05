@@ -106,7 +106,7 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
                 case 'stats':
                     Stats::renderGlobalMenu($baseUrl);
                     $subaction = $_GET['subaction'] ?? 'overview';
-                    Stats::renderGlobalStats($id, $subaction);
+                    Stats::renderGlobalStats($id, $subaction, $mode);
                 default:
                     break;
             }
