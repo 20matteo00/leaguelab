@@ -21,6 +21,21 @@ class Calendar
                 // 🔴 Eliminazione diretta (fase + giornata)
                 case 2:
                     $grouped[$phase][$round][] = $match;
+
+                    foreach ($grouped as &$phases) {
+                        foreach ($phases as &$rounds) {
+
+                            usort($rounds, function ($a, $b) {
+                                $minA = min($a['team_home_id'], $a['team_away_id']);
+                                $minB = min($b['team_home_id'], $b['team_away_id']);
+
+                                return $minA <=> $minB;
+                            });
+                        }
+                    }
+
+                    unset($phases, $rounds);
+
                     break;
 
                 // 🔵 Gironi (girone + giornata)
@@ -29,7 +44,6 @@ class Calendar
                     break;
             }
         }
-
         return $grouped;
     }
     public static function renderCalendar($seasonId, $level, $mode)
@@ -79,7 +93,7 @@ class Calendar
         $allIdsStr = implode(',', $allIds);
 
         $isEnded = Seasons::checkSeasonEnd($seasonId);
-        ?>
+?>
         <!-- FORM UNICO CHE WRAPPA TUTTO -->
         <form method="POST">
             <?php if (!$isEnded && $mode != 2): ?>
@@ -136,7 +150,7 @@ class Calendar
             </div>
         </form>
 
-        <?php
+    <?php
     }
 
     private static function renderDays($roundMatches, $round, $isEnded, $phase = null, $isMinPhase = true)
@@ -145,12 +159,12 @@ class Calendar
         // Costruisci il prefisso del round contestuale alla fase
         $roundKey = ($phase !== null) ? $phase . '_' . $round : $round;
 
-        $nameDay = 'Giornata ' . $round ;
-        if ($phase){
+        $nameDay = 'Giornata ' . $round;
+        if ($phase) {
             $nameDay = ($round == 1) ? 'Andata' : 'Ritorno';
         }
 
-        ?>
+    ?>
         <?php $roundIdsStr = implode(',', array_column($roundMatches, 'id')); ?>
         <div class="col-12 col-lg-6">
             <div class="card shadow-sm border-0 h-100" id="<?= $anchor ?>">
@@ -215,7 +229,7 @@ class Calendar
             </div>
         </div>
 
-        <?php
+    <?php
     }
     private static function parseCalendarPost(array $post, array $grouped, int $mode): array
     {
@@ -420,8 +434,8 @@ class Calendar
         $strengthAway = self::getTeamStrength($matchTeams['team_away_id']);
         $forze = self::getForzaEffettiva($strengthHome, $strengthAway);
 
-        $ratio = ($forze['forza_home'] - $forze['forza_away']) / 999;
-        $noise = mt_rand(-300, 300) / 999;
+        $ratio = ($forze['forza_home'] - $forze['forza_away']) / 600;
+        $noise = mt_rand(-150, 150) / 999;
         $score = $ratio + $noise;
 
         $gol1 = 0;
@@ -484,7 +498,7 @@ class Calendar
             $match = (array) $match;
             $matchMap[$match['team_home_id']][$match['team_away_id']] = $match;
         }
-        ?>
+    ?>
         <div class="table-responsive">
             <table class="table table-hover align-middle shadow-sm text-center">
                 <thead class="table-dark">
@@ -557,7 +571,7 @@ class Calendar
             <span class="text-muted align-self-center">— &nbsp; Non giocata</span>
         </div>
 
-        <?php
+    <?php
     }
 
     public static function renderKnockoutBracket($seasonId, $level, $round_trip)
@@ -660,13 +674,13 @@ class Calendar
         // Rendering — dalla fase più alta alla più bassa (sinistra → destra)
         krsort($byPhase);
         $phaseKeys = array_keys($byPhase);
-        ?>
+    ?>
         <div class="bracket-wrapper overflow-auto pb-4">
             <div class="d-flex gap-0 align-items-stretch" style="min-width: max-content;">
 
                 <?php foreach ($phaseKeys as $phaseIdx => $phase):
                     $slots = $slotMap[$phase] ?? [];
-                    ?>
+                ?>
                     <div class="bracket-round d-flex flex-column" style="min-width:210px; padding: 0 8px;">
                         <div class="text-center fw-bold text-uppercase small text-muted mb-2 border-bottom pb-1">
                             <?= Competitions::$round_names[$phase - 1] ?? 'Fase ' . $phase ?>
@@ -678,7 +692,7 @@ class Calendar
                                     continue;
                                 $winnerA = $pair['hasScore'] && $pair['scoreA'] > $pair['scoreB'];
                                 $winnerB = $pair['hasScore'] && $pair['scoreB'] > $pair['scoreA'];
-                                ?>
+                            ?>
                                 <div class="bracket-match card border shadow-sm" style="border-radius:10px; overflow:hidden;">
                                     <?php
                                     // Ordina i match per round (andata prima, ritorno dopo)
@@ -761,7 +775,7 @@ class Calendar
                 <?php endforeach; ?>
             </div>
         </div>
-        <?php
+<?php
     }
 
     private static function simulateAllMatchesBySeason($seasonId, $level)

@@ -933,8 +933,6 @@ class Standings
                         <th title="Attacco">ATK</th>
                         <th title="Difesa">DEF</th>
                         <th title="Fattore Casa">🏠</th>
-                        <th title="Forza Casa">F.Casa</th>
-                        <th title="Forza Trasferta">F.Trasf</th>
                         <th title="Forza Media">F.Media</th>
                     </tr>
                 </thead>
@@ -949,12 +947,6 @@ class Standings
                             <td><?= $r['attack'] ?></td>
                             <td><?= $r['defense'] ?></td>
                             <td><?= $r['home_factor'] ?></td>
-                            <td>
-                                <span class="badge bg-success"><?= $r['forza_home'] ?></span>
-                            </td>
-                            <td>
-                                <span class="badge bg-primary"><?= $r['forza_away'] ?></span>
-                            </td>
                             <td>
                                 <strong><?= $r['forza_avg'] ?></strong>
                             </td>
