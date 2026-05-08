@@ -36,8 +36,7 @@ $mode = $competition['modality'];
 
 $matchesNull = Matches::checkNullMatches($id);
 $finalPhase = Matches::checkFinalPhase($id);
-$statusSeason = Seasons::getSeasonStatus($id);
-$isEndedSeason = $statusSeason == 2 ? true : false;
+$isEndedSeason = Seasons::checkSeasonEnd($id);
 
 $prevSeason = Seasons::getPreviousSeasonById($id);
 $nextSeason = Seasons::getNextSeasonById($id);

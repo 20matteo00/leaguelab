@@ -412,7 +412,7 @@ class Matches
         $teams = array_column($teams, 'team_id');
         $teams = Teams::orderTeamsByName($teams);
 
-        $seasons = DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->where('status', '=', '2')->get();
+        $seasons = DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->where('status', '=', '99')->get();
         $seasons = array_column($seasons, 'id');
 
         $maxLevel = DB::table('competition_levels')
@@ -650,7 +650,7 @@ class Matches
         $teams = array_column($teams, 'team_id');
         $teams = Teams::orderTeamsByName($teams);
 
-        $seasons = DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->where('status', '=', '2')->get();
+        $seasons = DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->where('status', '=', '99')->get();
         $seasons = array_column($seasons, 'id');
 
         $maxLevel = DB::table('competition_levels')

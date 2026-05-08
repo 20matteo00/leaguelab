@@ -178,7 +178,7 @@ class Stats
     {
         if (empty($team))
             return;
-        $seasons = DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->where('status', '=', '2')->get();
+        $seasons = DB::table('seasons')->select('id')->where('competition_id', '=', $compId)->where('status', '=', '99')->get();
         $seasons = array_column($seasons, 'id');
         $bestYear = $badYear = [
             'year' => 0,
@@ -248,7 +248,7 @@ class Stats
         $seasons = DB::table('seasons')
             ->select('id')
             ->where('competition_id', '=', $compId)
-            ->where('status', '=', '2')
+            ->where('status', '=', '99')
             ->get();
         $seasons = array_column($seasons, 'id');
 

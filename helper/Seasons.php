@@ -11,7 +11,7 @@ class Seasons
             'label' => 'In corso',
             'badge' => 'success'
         ],
-        2 => [
+        99 => [
             'label' => 'Conclusa',
             'badge' => 'dark'
         ],
@@ -131,7 +131,7 @@ class Seasons
     public static function checkSeasonEnd($seasonId)
     {
         $status = self::getSeasonStatus($seasonId);
-        if ($status == 2)
+        if ($status == 99)
             return true;
         return false;
     }
@@ -142,7 +142,7 @@ class Seasons
         DB::table('seasons')
             ->where('id', '=', $seasonId)
             ->update([
-                'status' => 2,
+                'status' => 99,
             ]);
         header("Location: index.php?page=competition&id=" . $compId);
         exit;
@@ -152,7 +152,7 @@ class Seasons
     {
         $lastSeasonEnd = self::getLastSeason($compId)['status'];
 
-        if ($lastSeasonEnd == 2)
+        if ($lastSeasonEnd == 99)
             return true;
         return false;
     }
@@ -290,7 +290,7 @@ class Seasons
     public static function renderMenu($page, $urlParams, $mode)
     {
         $menu = self::$menu[$mode];
-        ?>
+?>
         <div class="row g-2 mb-4">
             <?php foreach ($menu as $m): ?>
                 <?php $urlParams['action'] = $m['action']; ?>
@@ -307,7 +307,7 @@ class Seasons
                 </div>
             <?php endforeach; ?>
         </div>
-        <?php
+<?php
     }
 
     public static function getPreviousSeasonById($seasonId)
