@@ -52,7 +52,7 @@ class Standings
                         '<i class="bi bi-' . $m['icon'] . ' me-2"></i> ' . $m['label'],
                         $urlParams,
                         [
-                            'class' => 'btn btn-outline-primary w-100 p-2'
+                            'class' => 'btn btn-outline-info w-100 p-2'
                         ],
                         'content'
                     ) ?>

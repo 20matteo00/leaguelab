@@ -134,7 +134,7 @@ $draws = Matches::getDraws($id);
                             'action' => $action
                         ],
                         [
-                            'class' => 'btn btn-outline-info w-100 p-2 fs-1'
+                            'class' => 'btn btn-outline-primary w-100 p-2 fs-1'
                         ],
                         'content'
                     ) ?>

@@ -100,7 +100,7 @@ class Competitions
                         '<i class="bi bi-' . $m['icon'] . ' me-2"></i> ' . $m['label'],
                         $urlParams,
                         [
-                            'class' => 'btn btn-secondary w-100 p-3 fs-5'
+                            'class' => 'btn btn-outline-secondary w-100 p-3 fs-5'
                         ],
                         'content'
                     ) ?>
