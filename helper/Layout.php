@@ -24,7 +24,7 @@ class Layout
 
                     <?php foreach (self::$menu as $label => $link): ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?= Link::buildHref($link, [], '') ?>">
+                            <a class="nav-link" href="<?= Link::url($link, [], '') ?>">
                                 <?= htmlspecialchars($label) ?>
                             </a>
                         </li>
@@ -43,7 +43,7 @@ class Layout
             <div class="row g-3 justify-content-center">
                 <?php foreach ($menu as $label => $action): ?>
                     <div class="col-12 col-md-4 col-lg-3">
-                        <a href="<?= Link::buildHref($page, ['action' => $action], '') ?>" class="text-decoration-none">
+                        <a href="<?= Link::url($page, ['action' => $action], '') ?>" class="text-decoration-none">
                             <div class="card shadow-sm h-100 border-0 hover-shadow">
                                 <div class="card-body text-center py-4">
                                     <div class="fw-bold fs-5">

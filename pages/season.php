@@ -103,7 +103,7 @@ $draws = Matches::getDraws($id);
     <?php endif; ?>
     <!-- ── HEADER ──────────────────────────────────────────────────────────── -->
     <div class="row my-3 g-3 align-items-center">
-        <a class="col" href="<?= Link::buildHref('competition', ['id' => $competition['id']], '') ?>">
+        <a class="col" href="<?= Link::url('competition', ['id' => $competition['id']], '') ?>">
             <div class="row">
                 <?php if ($logo): ?>
                     <div class="col-auto">

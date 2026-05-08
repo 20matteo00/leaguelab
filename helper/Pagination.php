@@ -8,13 +8,15 @@ class Pagination
     private static function pageUrl($page, array $override = []): string
     {
         $params = array_merge([
-            'page'     => $page,
             'action'   => 'view',
             'sorts'    => $GLOBALS['sortsParam'] ?? json_encode([]),
             'limit'    => $GLOBALS['limit'],
             'page_num' => $GLOBALS['page_num'],
         ], $override);
-        return 'index.php?' . http_build_query($params);
+
+        $url = Link::url($page, $params, '');
+
+        return $url;
     }
 
     // In Layout class (o helpers.php)

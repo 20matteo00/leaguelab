@@ -18,7 +18,7 @@ $logo   = $images['logo'] ?? null;
 
     <!-- MATCH INFO -->
     <div class="row g-3 mb-4">
-        <a class="col-12 col-md-4" href="<?= Link::buildHref('competition', ['id' => $competition['id']], '') ?>">
+        <a class="col-12 col-md-4" href="<?= Link::url('competition', ['id' => $competition['id']], '') ?>">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body text-center">
                     <div class="fw-bold mb-1">Competizione</div>
@@ -26,7 +26,7 @@ $logo   = $images['logo'] ?? null;
                 </div>
             </div>
         </a>
-        <a class="col-12 col-md-4" href="<?= Link::buildHref('season', ['id' => $season['id']], '') ?>">
+        <a class="col-12 col-md-4" href="<?= Link::url('season', ['id' => $season['id']], '') ?>">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body text-center">
                     <div class="fw-bold mb-1">Stagione</div>

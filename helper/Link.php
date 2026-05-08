@@ -9,7 +9,7 @@ class Link
         array $attrs = [],
         ?string $anchor = null
     ): string {
-        $href = self::buildHref($page, $params, $anchor);
+        $href = self::url($page, $params, $anchor);
 
         $attrs['href'] = $href;
 
@@ -25,7 +25,7 @@ class Link
         return $html;
     }
 
-    public static function buildHref(
+    public static function url(
         string $page,
         array $params,
         ?string $anchor

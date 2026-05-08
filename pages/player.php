@@ -26,7 +26,7 @@ $player = DB::table('players')->where('id', '=', $id)->first();
                 </div>
             </div>
             <div class="col-auto">
-                <a class="d-flex justify-content-center align-items-center h-100" href="<?= Link::buildHref('team', ['id' => $player['team_id']], '') ?>">
+                <a class="d-flex justify-content-center align-items-center h-100" href="<?= Link::url('team', ['id' => $player['team_id']], '') ?>">
                     <?php Teams::renderTeams($player['team_id'], 'p-2 rounded-pill h1 w-100 text-center fw-bold mx-2', true, true) ?>
                 </a>
             </div>
