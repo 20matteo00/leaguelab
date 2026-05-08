@@ -83,7 +83,7 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
                                 'action' => $action
                             ],
                             [
-                                'class' => 'btn btn-primary w-100 p-2 fs-1'
+                                'class' => 'btn btn-outline-info w-100 p-2 fs-1'
                             ],
                             'content'
                         ) ?>

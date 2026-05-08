@@ -56,7 +56,7 @@ class Stats
                         '<i class="bi bi-' . $m['icon'] . '"></i> ' . $m['label'],
                         $urlParams,
                         [
-                            'class' => 'btn btn-info w-100'
+                            'class' => 'btn btn-outline-info w-100'
                         ],
                         'content'
                     ) ?>
@@ -79,7 +79,7 @@ class Stats
                         '<i class="bi bi-' . $m['icon'] . '"></i> ' . $m['label'],
                         $urlParams,
                         [
-                            'class' => 'btn btn-info w-100'
+                            'class' => 'btn btn-outline-info w-100'
                         ],
                         'content'
                     ) ?>

@@ -75,7 +75,7 @@ class Standings
                         $i,
                         $urlParams,
                         [
-                            'class' => 'btn btn-info w-100 p-2'
+                            'class' => 'btn btn-outline-info w-100 p-2'
                         ],
                         'content'
                     ) ?>
