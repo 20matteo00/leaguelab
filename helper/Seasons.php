@@ -287,17 +287,23 @@ class Seasons
         return $newSeasonId;
     }
 
-    public static function renderMenu($baseUrl, $level, $mode)
+    public static function renderMenu($page, $urlParams, $mode)
     {
         $menu = self::$menu[$mode];
         ?>
         <div class="row g-2 mb-4">
             <?php foreach ($menu as $m): ?>
+                <?php $urlParams['action'] = $m['action']; ?>
                 <div class="col">
-                    <a href="<?= $baseUrl ?>&level=<?= $level ?>&action=<?= $m['action'] ?>#content"
-                        class="btn btn-secondary w-100 p-3 fs-5">
-                        <i class="bi bi-<?= $m['icon'] ?> "></i> <?= $m['label'] ?>
-                    </a>
+                    <?= Link::a(
+                        $page,
+                        '<i class="bi bi-' . $m['icon'] . '"></i> ' . $m['label'],
+                        $urlParams,
+                        [
+                            'class' => 'btn btn-secondary w-100 p-3 fs-5'
+                        ],
+                        'content'
+                    ) ?>
                 </div>
             <?php endforeach; ?>
         </div>

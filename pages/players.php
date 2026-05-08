@@ -1,7 +1,7 @@
 <?php
 $menu = [
-    'Crea'      => 'index.php?page=players&action=create',
-    'Visualizza' => 'index.php?page=players&action=view',
+    'Crea'      => 'create',
+    'Visualizza' => 'view',
 ];
 $action = $_GET['action'] ?? 'view';
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -134,7 +134,7 @@ if ($action === 'duplicate' && $id) {
     exit;
 }
 
-Layout::renderSubMenu($menu);
+Layout::renderSubMenu('players', $menu);
 
 $editImages = [];
 if ($player && !empty($player['images'])) {
@@ -245,7 +245,12 @@ $sortsParam   = json_encode($sorts);
                         </div>
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">Salva</button>
-                            <a href="index.php?page=players&action=view" class="btn btn-secondary">Annulla</a>
+                            <?= Link::a(
+                                'players',
+                                'Annulla',
+                                ['action' => 'view'],
+                                ['class' => 'btn btn-secondary']
+                            ) ?>
                         </div>
                     </form>
                 </div>
@@ -267,8 +272,18 @@ $sortsParam   = json_encode($sorts);
                             </span>
                         <?php endforeach; ?>
                         &nbsp;
-                        <a href="index.php?page=players&action=view&limit=<?= $limit ?>"
-                            class="text-danger text-decoration-none small" title="Rimuovi tutti gli ordinamenti">✕ reset</a>
+                        <?= Link::a(
+                            'players',
+                            '✕ reset',
+                            [
+                                'action' => 'view',
+                                'limit' => $limit
+                            ],
+                            [
+                                'class' => 'text-danger text-decoration-none small',
+                                'title' => 'Rimuovi tutti gli ordinamenti'
+                            ]
+                        ) ?>
                     <?php endif; ?>
                 </small>
                 <form method="GET" class="d-flex align-items-center gap-2">
@@ -337,15 +352,55 @@ $sortsParam   = json_encode($sorts);
                                 <td><span class="badge bg-primary"><?= $player['defense'] ?></span></td>
                                 <td>
                                     <div class="d-flex gap-1 justify-content-center">
-                                        <a href="index.php?page=player&id=<?= $player['id'] ?>"
-                                            class="btn btn-sm btn-outline-success" title="Visualizza">👁️</a>
-                                        <a href="index.php?page=players&action=edit&id=<?= $player['id'] ?>"
-                                            class="btn btn-sm btn-outline-primary" title="Modifica">✏️</a>
-                                        <a href="index.php?page=players&action=duplicate&id=<?= $player['id'] ?>"
-                                            class="btn btn-sm btn-outline-secondary" title="Duplica">📋</a>
-                                        <a href="index.php?page=players&action=delete&id=<?= $player['id'] ?>"
-                                            class="btn btn-sm btn-outline-danger" title="Elimina"
-                                            onclick="return confirm('Eliminare <?= htmlspecialchars(addslashes($player['name'])) ?>?')">🗑️</a>
+                                        <?= Link::a(
+                                            'player',
+                                            '👁️',
+                                            ['id' => $player['id']],
+                                            [
+                                                'class' => 'btn btn-sm btn-outline-success',
+                                                'title' => 'Visualizza'
+                                            ]
+                                        ) ?>
+
+                                        <?= Link::a(
+                                            'players',
+                                            '✏️',
+                                            [
+                                                'action' => 'edit',
+                                                'id' => $player['id']
+                                            ],
+                                            [
+                                                'class' => 'btn btn-sm btn-outline-primary',
+                                                'title' => 'Modifica'
+                                            ]
+                                        ) ?>
+
+                                        <?= Link::a(
+                                            'players',
+                                            '📋',
+                                            [
+                                                'action' => 'duplicate',
+                                                'id' => $player['id']
+                                            ],
+                                            [
+                                                'class' => 'btn btn-sm btn-outline-secondary',
+                                                'title' => 'Duplica'
+                                            ]
+                                        ) ?>
+
+                                        <?= Link::a(
+                                            'players',
+                                            '🗑️',
+                                            [
+                                                'action' => 'delete',
+                                                'id' => $player['id']
+                                            ],
+                                            [
+                                                'class' => 'btn btn-sm btn-outline-danger',
+                                                'title' => 'Elimina',
+                                                'onclick' => "return confirm('Eliminare " . htmlspecialchars(addslashes($player['name'])) . "?')"
+                                            ]
+                                        ) ?>
                                     </div>
                                 </td>
                             </tr>

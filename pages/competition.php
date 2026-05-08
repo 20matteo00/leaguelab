@@ -11,6 +11,10 @@ $level = $_GET['level'] ?? 1;
 
 $baseUrl = 'index.php?page=competition&id=' . $id . '&level=' . $level;
 
+$urlParams = [
+    'id' => $id,
+    'level' => $level
+];
 
 if ($action == 'continue') {
     Seasons::seasonContinue($id);
@@ -70,15 +74,24 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
             <div class="row g-2 mb-4">
                 <?php for ($i = 1; $i <= $maxLevel; $i++): ?>
                     <div class="col">
-                        <a href="<?= $baseUrl ?>&level=<?= $i ?>&action=<?= $action ?>#content"
-                            class="btn btn-primary w-100 p-2 fs-1">
-                            <i class="bi bi-<?= $i ?>-circle me-2"></i> Livello
-                        </a>
+                        <?= Link::a(
+                            'competition',
+                            '<i class="bi bi-' . $i . '-circle me-2"></i> Livello',
+                            [
+                                'id' => $id,
+                                'level' => $i,
+                                'action' => $action
+                            ],
+                            [
+                                'class' => 'btn btn-primary w-100 p-2 fs-1'
+                            ],
+                            'content'
+                        ) ?>
                     </div>
                 <?php endfor; ?>
             </div>
         <?php endif; ?>
-        <?php Competitions::renderMenu($baseUrl, $mode) ?>
+        <?php Competitions::renderMenu('competition', $urlParams, $mode) ?>
 
 
         <div id="content">
@@ -86,8 +99,19 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
             switch ($action) {
                 case 'overview':
                     if ($lastSeasonEnd): ?>
-                        <a href="<?= $baseUrl ?>&action=continue" class="btn btn-success fw-bold p-3 w-100">Continua Competizione</a>
-                    <?php endif;
+                        <?= Link::a(
+                            'competition',
+                            'Continua Competizione',
+                            [
+                                'id' => $id,
+                                'action' => 'continue'
+                            ],
+                            [
+                                'class' => 'btn btn-success fw-bold p-3 w-100'
+                            ],
+                            'content'
+                        ) ?>
+            <?php endif;
                     Competitions::rendeOverview($competition, $levels, $seasons, $id);
                     break;
 
@@ -112,7 +136,8 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
                     break;
 
                 case 'stats':
-                    Stats::renderGlobalMenu($baseUrl);
+                    $urlParams['action'] = 'stats';
+                    Stats::renderGlobalMenu('competition', $urlParams);
                     $subaction = $_GET['subaction'] ?? 'overview';
                     Stats::renderGlobalStats($id, $subaction, $mode);
                 default:

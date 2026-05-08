@@ -1,7 +1,7 @@
 <?php
 $menu = [
-    'Crea'       => 'index.php?page=teams&action=create',
-    'Visualizza' => 'index.php?page=teams&action=view',
+    'Crea'       => 'create',
+    'Visualizza' => 'view',
 ];
 $action = $_GET['action'] ?? 'view';
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -141,7 +141,7 @@ if ($action === 'duplicate' && $id) {
     exit;
 }
 
-Layout::renderSubMenu($menu);
+Layout::renderSubMenu('teams', $menu);
 
 $editColors = ['background' => '#ffffff', 'text' => '#000000', 'border' => '#ffffff'];
 if ($team && !empty($team['colors'])) {
@@ -259,7 +259,15 @@ $linkExtra = [
                         </div>
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">Salva</button>
-                            <a href="index.php?page=teams&action=view" class="btn btn-secondary">Annulla</a>
+                            <?= Link::a(
+                                'teams',
+                                'Annulla',
+                                ['action' => 'view'],
+                                [
+                                    'class' => 'btn btn-secondary',
+                                    'title' => 'Annulla'
+                                ]
+                            ) ?>
                         </div>
                     </form>
                 </div>
@@ -281,8 +289,18 @@ $linkExtra = [
                             </span>
                         <?php endforeach; ?>
                         &nbsp;
-                        <a href="index.php?page=teams&action=view&limit=<?= $limit ?>"
-                            class="text-danger text-decoration-none small" title="Rimuovi tutti gli ordinamenti">✕ reset</a>
+                        <?= Link::a(
+                            'teams',
+                            '✕ reset',
+                            [
+                                'action' => 'view',
+                                'limit' => $limit
+                            ],
+                            [
+                                'class' => 'text-danger text-decoration-none small',
+                                'title' => 'Rimuovi tutti gli ordinamenti'
+                            ]
+                        ) ?>
                     <?php endif; ?>
                 </small>
                 <form method="GET" class="d-flex align-items-center gap-2">
@@ -348,15 +366,57 @@ $linkExtra = [
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1 justify-content-center">
-                                        <a href="index.php?page=team&id=<?= $team['id'] ?>"
-                                            class="btn btn-sm btn-outline-success" title="Visualizza">👁️</a>
-                                        <a href="index.php?page=teams&action=edit&id=<?= $team['id'] ?>"
-                                            class="btn btn-sm btn-outline-primary" title="Modifica">✏️</a>
-                                        <a href="index.php?page=teams&action=duplicate&id=<?= $team['id'] ?>"
-                                            class="btn btn-sm btn-outline-secondary" title="Duplica">📋</a>
-                                        <a href="index.php?page=teams&action=delete&id=<?= $team['id'] ?>"
-                                            class="btn btn-sm btn-outline-danger" title="Elimina"
-                                            onclick="return confirm('Eliminare <?= htmlspecialchars(addslashes($team['name'])) ?>?')">🗑️</a>
+
+                                        <?= Link::a(
+                                            'team',
+                                            '👁️',
+                                            ['id' => $team['id']],
+                                            [
+                                                'class' => 'btn btn-sm btn-outline-success',
+                                                'title' => 'Visualizza'
+                                            ]
+                                        ) ?>
+
+                                        <?= Link::a(
+                                            'teams',
+                                            '✏️',
+                                            [
+                                                'action' => 'edit',
+                                                'id' => $team['id']
+                                            ],
+                                            [
+                                                'class' => 'btn btn-sm btn-outline-primary',
+                                                'title' => 'Modifica'
+                                            ]
+                                        ) ?>
+
+                                        <?= Link::a(
+                                            'teams',
+                                            '📋',
+                                            [
+                                                'action' => 'duplicate',
+                                                'id' => $team['id']
+                                            ],
+                                            [
+                                                'class' => 'btn btn-sm btn-outline-secondary',
+                                                'title' => 'Duplica'
+                                            ]
+                                        ) ?>
+
+                                        <?= Link::a(
+                                            'teams',
+                                            '🗑️',
+                                            [
+                                                'action' => 'delete',
+                                                'id' => $team['id']
+                                            ],
+                                            [
+                                                'class' => 'btn btn-sm btn-outline-danger',
+                                                'title' => 'Elimina',
+                                                'onclick' => "return confirm('Eliminare " . htmlspecialchars(addslashes($team['name'])) . "?')"
+                                            ]
+                                        ) ?>
+
                                     </div>
                                 </td>
                             </tr>

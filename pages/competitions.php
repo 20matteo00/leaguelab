@@ -1,7 +1,7 @@
 <?php
 $menu = [
-    'Crea'       => 'index.php?page=competitions&action=create',
-    'Visualizza' => 'index.php?page=competitions&action=view',
+    'Crea'       => 'create',
+    'Visualizza' => 'view',
 ];
 $action = $_GET['action'] ?? 'view';
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -260,7 +260,7 @@ if ($action === 'duplicate' && $id) {
     exit;
 }
 
-Layout::renderSubMenu($menu);
+Layout::renderSubMenu('competitions', $menu);
 
 $editImages = [];
 if ($competition && !empty($competition['images'])) {
@@ -421,8 +421,12 @@ $linkExtra = [
                         </div>
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">Salva</button>
-                            <a href="index.php?page=competitions&action=view"
-                                class="btn btn-secondary">Annulla</a>
+                            <?= Link::a(
+                                'competitions',
+                                'Annulla',
+                                ['action' => 'view'],
+                                ['class' => 'btn btn-secondary']
+                            ) ?>
                         </div>
                     </form>
                 </div>
@@ -565,8 +569,12 @@ $linkExtra = [
                             <button type="submit" class="btn btn-primary">
                                 💾 Salva &amp; Crea Stagione
                             </button>
-                            <a href="index.php?page=competitions&action=view"
-                                class="btn btn-secondary">Annulla</a>
+                            <?= Link::a(
+                                'competitions',
+                                'Annulla',
+                                ['action' => 'view'],
+                                ['class' => 'btn btn-secondary']
+                            ) ?>
                         </div>
 
                     </form>
@@ -587,9 +595,18 @@ $linkExtra = [
                             </span>
                         <?php endforeach; ?>
                         &nbsp;
-                        <a href="index.php?page=competitions&action=view&limit=<?= $limit ?>"
-                            class="text-danger text-decoration-none small"
-                            title="Rimuovi tutti gli ordinamenti">✕ reset</a>
+                        <?= Link::a(
+                            'competitions',
+                            '✕ reset',
+                            [
+                                'action' => 'view',
+                                'limit' => $limit
+                            ],
+                            [
+                                'class' => 'text-danger text-decoration-none small',
+                                'title' => 'Rimuovi tutti gli ordinamenti'
+                            ]
+                        ) ?>
                     <?php endif; ?>
                 </small>
                 <form method="GET" class="d-flex align-items-center gap-2">
@@ -655,20 +672,76 @@ $linkExtra = [
                                 <td><?= Seasons::getLastSeason($competition['id'])['season_year'] ?? 'Non Iniziata' ?></td>
                                 <td>
                                     <div class="d-flex gap-1 justify-content-center">
+
                                         <?php if ($stagione_esistente != 0): ?>
-                                        <a href="index.php?page=competition&id=<?= $competition['id'] ?>"
-                                            class="btn btn-sm btn-outline-success" title="Visualizza">👁️</a>
+
+                                            <?= Link::a(
+                                                'competition',
+                                                '👁️',
+                                                ['id' => $competition['id']],
+                                                [
+                                                    'class' => 'btn btn-sm btn-outline-success',
+                                                    'title' => 'Visualizza'
+                                                ]
+                                            ) ?>
+
                                         <?php else: ?>
-                                            <a href="index.php?page=competitions&action=configure&id=<?= $competition['id'] ?>"
-                                                class="btn btn-sm btn-outline-success" title="Configura">⚙️</a>
-                                            <a href="index.php?page=competitions&action=edit&id=<?= $competition['id'] ?>"
-                                                class="btn btn-sm btn-outline-primary" title="Modifica">✏️</a>
+
+                                            <?= Link::a(
+                                                'competitions',
+                                                '⚙️',
+                                                [
+                                                    'action' => 'configure',
+                                                    'id' => $competition['id']
+                                                ],
+                                                [
+                                                    'class' => 'btn btn-sm btn-outline-success',
+                                                    'title' => 'Configura'
+                                                ]
+                                            ) ?>
+
+                                            <?= Link::a(
+                                                'competitions',
+                                                '✏️',
+                                                [
+                                                    'action' => 'edit',
+                                                    'id' => $competition['id']
+                                                ],
+                                                [
+                                                    'class' => 'btn btn-sm btn-outline-primary',
+                                                    'title' => 'Modifica'
+                                                ]
+                                            ) ?>
+
                                         <?php endif; ?>
-                                        <a href="index.php?page=competitions&action=duplicate&id=<?= $competition['id'] ?>"
-                                            class="btn btn-sm btn-outline-secondary" title="Duplica">📋</a>
-                                        <a href="index.php?page=competitions&action=delete&id=<?= $competition['id'] ?>"
-                                            class="btn btn-sm btn-outline-danger" title="Elimina"
-                                            onclick="return confirm('Eliminare <?= htmlspecialchars(addslashes($competition['name'])) ?>?')">🗑️</a>
+
+                                        <?= Link::a(
+                                            'competitions',
+                                            '📋',
+                                            [
+                                                'action' => 'duplicate',
+                                                'id' => $competition['id']
+                                            ],
+                                            [
+                                                'class' => 'btn btn-sm btn-outline-secondary',
+                                                'title' => 'Duplica'
+                                            ]
+                                        ) ?>
+
+                                        <?= Link::a(
+                                            'competitions',
+                                            '🗑️',
+                                            [
+                                                'action' => 'delete',
+                                                'id' => $competition['id']
+                                            ],
+                                            [
+                                                'class' => 'btn btn-sm btn-outline-danger',
+                                                'title' => 'Elimina',
+                                                'onclick' => "return confirm('Eliminare " . htmlspecialchars(addslashes($competition['name'])) . "?')"
+                                            ]
+                                        ) ?>
+
                                     </div>
                                 </td>
                             </tr>

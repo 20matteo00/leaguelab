@@ -31,13 +31,13 @@ $page = $_GET['page'] ?? null;
 
         <!-- Su -->
         <a href="#top" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-            style="width:45px;height:45px;">
+            style="width:24px;height:24px;">
             <i class="bi bi-arrow-up"></i>
         </a>
 
         <!-- Giù -->
         <a href="#bottom" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-            style="width:45px;height:45px;">
+            style="width:24px;height:24px;">
             <i class="bi bi-arrow-down"></i>
         </a>
 

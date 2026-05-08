@@ -3,9 +3,9 @@
 class Layout
 {
     private static $menu = [
-        'Squadre' => 'index.php?page=teams',
-        'Giocatori' => 'index.php?page=players',
-        'Competizioni' => 'index.php?page=competitions'
+        'Squadre' => 'teams',
+        'Giocatori' => 'players',
+        'Competizioni' => 'competitions'
     ];
 
     public static function renderMenu($title)
@@ -24,7 +24,7 @@ class Layout
 
                     <?php foreach (self::$menu as $label => $link): ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?= $link ?>">
+                            <a class="nav-link" href="<?= Link::buildHref($link, [], '') ?>">
                                 <?= htmlspecialchars($label) ?>
                             </a>
                         </li>
@@ -36,14 +36,14 @@ class Layout
     <?php
     }
 
-    public static function renderSubMenu($menu)
+    public static function renderSubMenu($page, $menu)
     {
     ?>
         <div class="container py-4">
             <div class="row g-3 justify-content-center">
-                <?php foreach ($menu as $label => $link): ?>
+                <?php foreach ($menu as $label => $action): ?>
                     <div class="col-12 col-md-4 col-lg-3">
-                        <a href="<?= $link ?>" class="text-decoration-none">
+                        <a href="<?= Link::buildHref($page, ['action' => $action], '') ?>" class="text-decoration-none">
                             <div class="card shadow-sm h-100 border-0 hover-shadow">
                                 <div class="card-body text-center py-4">
                                     <div class="fw-bold fs-5">
@@ -56,6 +56,6 @@ class Layout
                 <?php endforeach; ?>
             </div>
         </div>
-        <?php
+<?php
     }
 }

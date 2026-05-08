@@ -436,7 +436,7 @@ class Matches
                 $matches = self::getMatchesByTeamsComp($seasons, $teamHome, $teamAway, $location, $level, $order);
             }
         }
-        ?>
+?>
         <div>
             <form method="post" action="" class="head-to-head-form my-4">
                 <div class="row">
@@ -557,8 +557,15 @@ class Matches
                                     <td class="text-<?= $class ?>"><?= $esito ?></td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1">
-                                            <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2"
-                                                title="Visualizza Incontro">👁️</a>
+                                            <?= Link::a(
+                                                'match',
+                                                '👁️',
+                                                ['id' => $match['id']],
+                                                [
+                                                    'class' => 'btn btn-info btn-sm px-2',
+                                                    'title' => 'Visualizza Incontro'
+                                                ]
+                                            ) ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -633,7 +640,7 @@ class Matches
                 <?php Alert::generateAlert('Nessun Incontro tra le 2 squadre in questa competizione', 'warning', 'Nessun Incontro') ?>
             <?php endif; ?>
         </div>
-        <?php
+    <?php
     }
 
     public static function renderMatchesByTeamsAndCompAdvanced($compId, $mode)
@@ -665,7 +672,7 @@ class Matches
                 $matches = self::getMatchesByTeamsCompAdvanced($seasons, $teamsSelected, $level, $order);
             }
         }
-        ?>
+    ?>
         <div>
             <form method="post" action="" class="head-to-head-form my-4">
                 <div class="row">
@@ -765,8 +772,15 @@ class Matches
                                     <td class="text-<?= $class ?>"><?= $esito ?></td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1">
-                                            <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2"
-                                                title="Visualizza Incontro">👁️</a>
+                                            <?= Link::a(
+                                                'match',
+                                                '👁️',
+                                                ['id' => $match['id']],
+                                                [
+                                                    'class' => 'btn btn-info btn-sm px-2',
+                                                    'title' => 'Visualizza Incontro'
+                                                ]
+                                            ) ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -844,6 +858,6 @@ class Matches
                 <?php Alert::generateAlert('Nessun Incontro tra le squadre in questa competizione', 'warning', 'Nessun Incontro') ?>
             <?php endif; ?>
         </div>
-        <?php
+<?php
     }
 }

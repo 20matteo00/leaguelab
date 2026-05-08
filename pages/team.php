@@ -45,7 +45,7 @@ $team = DB::table('teams')->where('id', '=', $id)->first();
                 <div class="p-3 bg-light rounded shadow-sm text-center h-100">
                     <div class="text-muted small">Fattore casa</div>
                     <div class="fw-bold fs-4 text-success">
-                        🏠 <?= number_format($team['home_factor'], 2) ?> 
+                        🏠 <?= number_format($team['home_factor'], 2) ?>
                     </div>
                 </div>
             </div>
@@ -127,15 +127,57 @@ $team = DB::table('teams')->where('id', '=', $id)->first();
                             <td><span class="badge bg-primary"><?= $player['defense'] ?></span></td>
                             <td>
                                 <div class="d-flex gap-1 justify-content-center">
-                                    <a href="index.php?page=player&id=<?= $player['id'] ?>"
-                                            class="btn btn-sm btn-outline-success" title="Visualizza">👁️</a>
-                                    <a href="index.php?page=players&action=edit&id=<?= $player['id'] ?>"
-                                        class="btn btn-sm btn-outline-primary" title="Modifica">✏️</a>
-                                    <a href="index.php?page=players&action=duplicate&id=<?= $player['id'] ?>"
-                                        class="btn btn-sm btn-outline-secondary" title="Duplica">📋</a>
-                                    <a href="index.php?page=players&action=delete&id=<?= $player['id'] ?>"
-                                        class="btn btn-sm btn-outline-danger" title="Elimina"
-                                        onclick="return confirm('Eliminare <?= htmlspecialchars(addslashes($player['name'])) ?>?')">🗑️</a>
+
+                                    <?= Link::a(
+                                        'player',
+                                        '👁️',
+                                        ['id' => $player['id']],
+                                        [
+                                            'class' => 'btn btn-sm btn-outline-success',
+                                            'title' => 'Visualizza'
+                                        ]
+                                    ) ?>
+
+                                    <?= Link::a(
+                                        'players',
+                                        '✏️',
+                                        [
+                                            'action' => 'edit',
+                                            'id' => $player['id']
+                                        ],
+                                        [
+                                            'class' => 'btn btn-sm btn-outline-primary',
+                                            'title' => 'Modifica'
+                                        ]
+                                    ) ?>
+
+                                    <?= Link::a(
+                                        'players',
+                                        '📋',
+                                        [
+                                            'action' => 'duplicate',
+                                            'id' => $player['id']
+                                        ],
+                                        [
+                                            'class' => 'btn btn-sm btn-outline-secondary',
+                                            'title' => 'Duplica'
+                                        ]
+                                    ) ?>
+
+                                    <?= Link::a(
+                                        'players',
+                                        '🗑️',
+                                        [
+                                            'action' => 'delete',
+                                            'id' => $player['id']
+                                        ],
+                                        [
+                                            'class' => 'btn btn-sm btn-outline-danger',
+                                            'title' => 'Elimina',
+                                            'onclick' => "return confirm('Eliminare " . htmlspecialchars(addslashes($player['name'])) . "?')"
+                                        ]
+                                    ) ?>
+
                                 </div>
                             </td>
                         </tr>

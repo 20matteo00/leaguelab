@@ -87,20 +87,27 @@ class Competitions
         'Sessantaquattresimi'
     ];
 
-    public static function renderMenu($baseUrl, $mode)
+    public static function renderMenu($page, $urlParams, $mode)
     {
         $menu = self::$menu[$mode];
-        ?>
+?>
         <div class="row g-2 mb-4">
             <?php foreach ($menu as $m): ?>
+                <?php $urlParams['action'] = $m['action']; ?>
                 <div class="col">
-                    <a href="<?= $baseUrl ?>&action=<?= $m['action'] ?>#content" class="btn btn-secondary w-100 p-3 fs-5">
-                        <i class="bi bi-<?= $m['icon'] ?> "></i> <?= $m['label'] ?>
-                    </a>
+                    <?= Link::a(
+                        $page,
+                        '<i class="bi bi-' . $m['icon'] . ' me-2"></i> ' . $m['label'],
+                        $urlParams,
+                        [
+                            'class' => 'btn btn-secondary w-100 p-3 fs-5'
+                        ],
+                        'content'
+                    ) ?>
                 </div>
             <?php endforeach; ?>
         </div>
-        <?php
+    <?php
     }
 
     public static function renderCompetitions($compId, $class = '', $country = false, $logo = false)
@@ -125,7 +132,7 @@ class Competitions
         if (!$image) {
             $image = 'images/empty.png';
         }
-        ?>
+    ?>
         <div>
 
             <?php if ($logo): ?>
@@ -140,7 +147,7 @@ class Competitions
             <?php endif; ?>
 
         </div>
-        <?php
+    <?php
     }
 
     public static function rendeOverview($competition, $levels, $seasons, $id)
@@ -152,7 +159,7 @@ class Competitions
         $mode_label = array_column($modality, 'name', 'code')[$mode] ?? '—';
         $country_name = array_column(Field::getStates(), 'name', 'code')[$competition['country'] ?? ''] ?? null;
 
-        ?>
+    ?>
         <!-- ── INFO GENERALI ───────────────────────────────────────────────────── -->
         <div class="row my-3 g-3">
 
@@ -360,8 +367,15 @@ class Competitions
                                             </td>
                                             <td>
                                                 <div class="d-flex gap-1 justify-content-center">
-                                                    <a href="index.php?page=season&id=<?= $season['id'] ?>"
-                                                        class="btn btn-sm btn-outline-success" title="Visualizza">👁️</a>
+                                                    <?= Link::a(
+                                                        'season',
+                                                        '👁️',
+                                                        ['id' => $season['id']],
+                                                        [
+                                                            'class' => 'btn btn-sm btn-outline-success',
+                                                            'title' => 'Visualizza'
+                                                        ]
+                                                    ) ?>
                                                 </div>
                                             </td>
                                         </tr>
@@ -371,13 +385,20 @@ class Competitions
                         <?php else: ?>
                             <div class="text-center text-muted py-4">
                                 Nessuna stagione ancora creata.
-                                <a href="index.php?page=competitions&action=configure&id=<?= $id ?>">Creane una</a>
+                                <?= Link::a(
+                                    'competitions',
+                                    'Creane una',
+                                    [
+                                        'action' => 'configure',
+                                        'id' => $id
+                                    ]
+                                ) ?>
                             </div>
                         <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
-        <?php
+<?php
     }
 }

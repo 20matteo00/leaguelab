@@ -201,8 +201,15 @@ class Calendar
                             </div>
                             <!-- Bottoni -->
                             <div class="d-flex gap-1">
-                                <a href="index.php?page=match&id=<?= $match['id'] ?>" class="btn btn-info btn-sm px-2"
-                                    title="Visualizza Incontro">👁️</a>
+                                <?= Link::a(
+                                    'match',
+                                    '👁️',
+                                    ['id' => $match['id']],
+                                    [
+                                        'class' => 'btn btn-info btn-sm px-2',
+                                        'title' => 'Visualizza Incontro'
+                                    ]
+                                ) ?>
                                 <?php if (!$isEnded && $isMinPhase): ?>
                                     <button type="submit" name="action" value="save_one_<?= $match['id'] ?>"
                                         class="btn btn-success btn-sm px-2" title="Salva Incontro">✓</button>

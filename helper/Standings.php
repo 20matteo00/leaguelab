@@ -36,41 +36,53 @@ class Standings
 
     ];
 
-    public static function renderStandingsMenu($baseUrl, $level, $round_trip)
+    public static function renderStandingsMenu($page, $urlParams, $round_trip)
     {
         $menu = self::$menu;
-        ?>
+?>
 
         <div class="row g-2 mb-4">
             <?php foreach ($menu as $m): ?>
                 <?php if ($round_trip == 0 && ($m['subaction'] == 'first-leg' || $m['subaction'] == 'second-leg'))
                     continue; ?>
                 <div class="col">
-                    <a href="<?= $baseUrl ?>&level=<?= $level ?>&action=standings&subaction=<?= $m['subaction'] ?>#content"
-                        class="btn btn-info w-100">
-                        <i class="bi bi-<?= $m['icon'] ?>"></i> <?= $m['label'] ?>
-                    </a>
+                    <?php $urlParams['subaction'] = $m['subaction']; ?>
+                    <?= Link::a(
+                        $page,
+                        '<i class="bi bi-' . $m['icon'] . ' me-2"></i> ' . $m['label'],
+                        $urlParams,
+                        [
+                            'class' => 'btn btn-outline-primary w-100 p-2'
+                        ],
+                        'content'
+                    ) ?>
                 </div>
             <?php endforeach; ?>
         </div>
-        <?php
+    <?php
     }
 
-    public static function renderProgressMenu($baseUrl, $level, $rounds)
+    public static function renderProgressMenu($page, $urlParams, $rounds)
     {
-        ?>
+    ?>
 
         <div class="row g-2 mb-4">
             <?php for ($i = 1; $i <= $rounds; $i++): ?>
+                <?php $urlParams['subaction'] = $i; ?>
                 <div class="col">
-                    <a href="<?= $baseUrl ?>&level=<?= $level ?>&action=trend&subaction=<?= $i ?>#content"
-                        class="btn btn-info w-100 p-2">
-                        <?= $i ?>
-                    </a>
+                    <?= Link::a(
+                        $page,
+                        $i,
+                        $urlParams,
+                        [
+                            'class' => 'btn btn-info w-100 p-2'
+                        ],
+                        'content'
+                    ) ?>
                 </div>
             <?php endfor; ?>
         </div>
-        <?php
+    <?php
     }
 
     private static function emptyStanding(): array
@@ -163,7 +175,7 @@ class Standings
 
     public static function renderStandingsTable(array $standings, array $teams, string $title, $comp_level = [], $countEdition = false): void
     {
-        ?>
+    ?>
         <?php if ($title): ?>
             <h6 class="fw-bold mt-4 mb-2"><?= htmlspecialchars($title) ?></h6>
         <?php endif; ?>
@@ -234,7 +246,7 @@ class Standings
                 </div>
             <?php endif; ?>
         </div>
-        <?php
+    <?php
     }
 
     public static function renderStandings($seasonId, $level, $subaction, $round_trip): void
@@ -360,7 +372,7 @@ class Standings
             $i += $span;
         }
 
-        ?>
+    ?>
         <div class="table-responsive mt-4">
             <table class="table table-bordered align-middle text-center shadow-sm mb-0">
                 <tbody>
@@ -379,7 +391,7 @@ class Standings
                         foreach ($groups as $group):
                             $teamId = $group['team_id'];
                             $span = $group['span'];
-                            ?>
+                        ?>
                             <td colspan="<?= $span ?>">
                                 <?php if ($teamId === null): ?>
                                     <span class="text-muted small">—</span>
@@ -392,7 +404,7 @@ class Standings
                 </tbody>
             </table>
         </div>
-        <?php
+    <?php
     }
 
     public static function renderProgress($seasonId, $level, $subaction): void
@@ -506,7 +518,7 @@ class Standings
             echo '<p class="text-muted">Nessun dato disponibile.</p>';
             return;
         }
-        ?>
+    ?>
         <div class="mb-4">
             <h5 class="fw-bold mb-3">🏆 Classifica All-Time - Livello <?= $level ?></h5>
 
@@ -518,7 +530,7 @@ class Standings
                 true
             ); ?>
         </div>
-        <?php
+    <?php
     }
 
     private static function buildHallOfFame($compId, $level): array
@@ -609,7 +621,7 @@ class Standings
             2 => ['bg' => '#C0C0C0', 'text' => '#000'],
             3 => ['bg' => '#CD7F32', 'text' => '#fff'],
         ];
-        ?>
+    ?>
         <div class="mb-4">
             <h5 class="fw-bold mb-3">🏆 Albo d'Oro - Livello <?= $level ?></h5>
 
@@ -620,9 +632,11 @@ class Standings
                     <div class="col-12 col-md-6 col-xl-4">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-header bg-dark text-white text-center fw-bold">
-                                <a href="index.php?page=season&id=<?= $sid ?>">
-                                    📅 <?= htmlspecialchars($row['season_year']) ?>
-                                </a>
+                                <?= Link::a(
+                                    'season',
+                                    '📅 ' . htmlspecialchars($row['season_year']),
+                                    ['id' => $sid]
+                                ) ?>
                             </div>
 
                             <div class="card-body d-flex flex-column justify-content-end">
@@ -686,7 +700,7 @@ class Standings
             </div>
 
         </div>
-        <?php
+    <?php
     }
 
     private static function buildHallOfFameKnockout($compId, $level): array
@@ -801,7 +815,7 @@ class Standings
             2 => ['bg' => '#C0C0C0', 'text' => '#000'],
             3 => ['bg' => '#CD7F32', 'text' => '#fff'],
         ];
-        ?>
+    ?>
         <div class="mb-4">
             <h5 class="fw-bold mb-3">🏆 Albo d'Oro - Livello <?= $level ?></h5>
 
@@ -810,9 +824,11 @@ class Standings
                     <div class="col-12 col-md-6 col-xl-4">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-header bg-dark text-white text-center fw-bold">
-                                <a href="index.php?page=season&id=<?= $sid ?>">
-                                    📅 <?= htmlspecialchars($row['season_year']) ?>
-                                </a>
+                                <?= Link::a(
+                                    'season',
+                                    '📅 ' . htmlspecialchars($row['season_year']),
+                                    ['id' => $sid]
+                                ) ?>
                             </div>
                             <div class="card-body d-flex flex-column justify-content-end">
 
@@ -821,7 +837,7 @@ class Standings
                                     <?php foreach ([1, 0, 1] as $visualPos => $dataIdx):
                                     // Classico podio: 2°(sx) 1°(centro) non serve il terzo qui
                                     // Usiamo layout [2°, 1°]
-                                endforeach; ?>
+                                    endforeach; ?>
 
                                     <?php
                                     $layout = [
@@ -830,7 +846,7 @@ class Standings
                                     ];
                                     foreach ($layout as $col):
                                         $entry = $row['top'][$col['idx']] ?? null;
-                                        ?>
+                                    ?>
                                         <div class="d-flex flex-column align-items-center" style="flex:1">
                                             <?php if ($entry): ?>
                                                 <div class="mb-1">
@@ -894,7 +910,7 @@ class Standings
                 </table>
             </div>
         </div>
-        <?php
+    <?php
     }
 
     public static function renderExpectedStandings($seasonId, $level): void
@@ -922,7 +938,7 @@ class Standings
         }
 
         uasort($rows, fn($a, $b) => $b['forza_avg'] <=> $a['forza_avg']);
-        ?>
+    ?>
         <h6 class="fw-bold mt-4 mb-2">Classifica Prevista</h6>
         <div class="table-responsive mb-4">
             <table class="table table-hover align-middle shadow-sm text-center">
@@ -955,7 +971,7 @@ class Standings
                 </tbody>
             </table>
         </div>
-        <?php
+<?php
     }
 
     public static function getPositionTeamBySeason($teamId, $seasonId, $level)
