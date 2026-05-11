@@ -37,20 +37,18 @@ class Calendar
                     unset($phases, $rounds);
 
                     break;
-
-                // 🔵 Gironi (girone + giornata)
-                case 3:
-                    $grouped[$round][] = $match;
-                    break;
             }
         }
         return $grouped;
     }
     public static function renderCalendar($seasonId, $level, $mode)
     {
-        $matches = Matches::getMatchesByLevelOrGroup($seasonId, $level, $mode);
+
+        $matches = Matches::getMatchesByLevelOrGroup($seasonId, $level, true);
+
 
         $grouped = self::groupMatches($matches, $mode);
+
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $parsed = self::parseCalendarPost($_POST, $grouped, $mode);
@@ -91,6 +89,7 @@ class Calendar
 ?>
         <!-- FORM UNICO CHE WRAPPA TUTTO -->
         <form method="POST">
+            <input type="hidden" name="match_ids" value="<?= $allIdsStr ?>">
             <?php if (!$isEnded && $mode != 2): ?>
                 <div class="position-fixed bottom-0 start-0 w-100 p-3 bg-white z-1">
                     <div class="container d-flex gap-2">
@@ -102,10 +101,7 @@ class Calendar
                         </button>
                     </div>
                 </div>
-            <?php endif; ?>
-            <input type="hidden" name="match_ids" value="<?= $allIdsStr ?>">
-            <!-- AZIONI LIVELLO -->
-            <?php if (!$isEnded && $mode != 2): ?>
+                <!-- AZIONI LIVELLO -->
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-4">
                     <button type="submit" name="action" value="save_level" class="btn btn-success fw-bold p-3 w-100">💾 Salva
                         Livello</button>
@@ -139,12 +135,6 @@ class Calendar
                             <?php self::renderDays($roundMatches, $round, $isEnded, $phase, $isMinPhase); ?>
                         <?php endforeach; ?>
 
-                    <?php endforeach; ?>
-
-                <?php elseif ($mode == 3): ?>
-
-                    <?php foreach ($grouped as $round => $roundMatches): ?>
-                        <?php self::renderDays($roundMatches, $round, $isEnded); ?>
                     <?php endforeach; ?>
 
                 <?php endif; ?>
@@ -495,7 +485,7 @@ class Calendar
     {
         $teams = Seasons::getTeamsLevelsBySeason($seasonId)[$level];
         $teams = Teams::orderTeamsByName($teams);
-        
+
         $matches = Matches::getMatchesByLevelOrGroup($seasonId, $level, $mode);
 
         // Indicizza per [home_id][away_id] => match
@@ -585,6 +575,7 @@ class Calendar
         $matches = DB::table('matches')
             ->where('season_id', '=', $seasonId)
             ->where('level', '=', $level)
+            ->whereNotNull('phase')
             ->orderBy('phase', 'DESC')
             ->orderBy('round')
             ->get();

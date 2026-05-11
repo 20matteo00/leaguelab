@@ -447,4 +447,10 @@ class Competitions
 
         return $options;
     }
+
+    public static function getQualifiedTeamsByCompAndGroup($compId, $groupId)
+    {
+        return DB::table('competition_levels')->where('competition_id', '=', $compId)
+            ->where('level', '=', $groupId)->first()['promotion_spots'] ?? 0;
+    }
 }

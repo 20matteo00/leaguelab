@@ -34,6 +34,17 @@ $urlParams = [
 $round_trip = $competition['round_trip'];
 $mode = $competition['modality'];
 
+$status = Seasons::getSeasonStatus($id);
+
+$effectiveMode = $mode;
+if ($mode == 3) {
+    $effectiveMode = ($status == 2) ? 2 : 1;
+}
+
+if ($mode == 3 && $status == 2) {
+    $maxLevel = 1;
+}
+
 $matchesNull = Matches::checkNullMatches($id);
 $finalPhase = Matches::checkFinalPhase($id);
 $isEndedSeason = Seasons::checkSeasonEnd($id);
@@ -98,6 +109,59 @@ $draws = Matches::getDraws($id);
                             Alert::generateAlert($text, 'danger', 'Squadre a pari Gol', false) ?>
                 <?php endif; ?>
             <?php endif; ?>
+        <?php elseif ($mode == 3): ?>
+            <?php
+            if ($status == 1) : ?>
+                <?= Link::a(
+                    'season',
+                    'Vai alla Fase Successiva',
+                    [
+                        'id' => $id,
+                        'action' => 'finalphase'
+                    ],
+                    [
+                        'class' => 'btn btn-warning fw-bold p-3 w-100'
+                    ],
+                    'content'
+                ) ?>
+            <?php elseif ($status == 2):  ?>
+                <?php if ($finalPhase && empty($draws)): ?>
+                    <?= Link::a(
+                        'season',
+                        'Chiudi Stagione',
+                        [
+                            'id' => $id,
+                            'action' => 'end'
+                        ],
+                        [
+                            'class' => 'btn btn-warning fw-bold p-3 w-100'
+                        ],
+                        'content'
+                    ) ?> <?php else: ?>
+                    <?php if (empty($draws)): ?>
+                        <?= Link::a(
+                                'season',
+                                'Vai alla Fase Successiva',
+                                [
+                                    'id' => $id,
+                                    'action' => 'nextphase'
+                                ],
+                                [
+                                    'class' => 'btn btn-warning fw-bold p-3 w-100'
+                                ],
+                                'content'
+                            ) ?>
+                    <?php else: ?>
+                        <?php
+                            $text = '';
+                            foreach ($draws as $draw) {
+                                $text .= Teams::getTeamNameById($draw['teamA']) . ' VS ' . Teams::getTeamNameById($draw['teamB'])
+                                    . ' (' . $draw['scoreA'] . '-' . $draw['scoreB'] . ')<br>';
+                            }
+                            Alert::generateAlert($text, 'danger', 'Squadre a pari Gol', false) ?>
+                    <?php endif; ?>
+                <?php endif; ?>
+            <?php endif; ?>
         <?php endif; ?>
     <?php endif; ?>
     <!-- ── HEADER ──────────────────────────────────────────────────────────── -->
@@ -141,41 +205,44 @@ $draws = Matches::getDraws($id);
             <?php endfor; ?>
         </div>
     <?php endif; ?>
-    <?php Seasons::renderMenu('season', $urlParams, $mode) ?>
+    <?php Seasons::renderMenu('season', $urlParams, $effectiveMode) ?>
     <hr>
     <div id="content">
         <?php
         switch ($action) {
             case 'calendar':
-                Calendar::renderCalendar($id, $level, $mode);
+                Calendar::renderCalendar($id, $level, $effectiveMode);
                 break;
             case 'standings':
                 $urlParams['action'] = 'standings';
                 Standings::renderStandingsMenu('season', $urlParams, $round_trip);
                 $subaction = $_GET['subaction'] ?? 'total';
-                Standings::renderStandings($id, $level, $subaction, $round_trip, $mode);
+                Standings::renderStandings($id, $level, $subaction, $round_trip, $effectiveMode);
                 break;
             case 'bracket':
-                $mode !== 2 ? Calendar::renderBracket($id, $level, $mode) : Calendar::renderKnockoutBracket($id, $level, $round_trip);
+                $effectiveMode !== 2 ? Calendar::renderBracket($id, $level, $effectiveMode) : Calendar::renderKnockoutBracket($id, $level, $round_trip);
                 break;
             case 'trend':
                 $urlParams['action'] = 'trend';
-                $rounds = max(Matches::getMatchesByLevelOrGroup($id, $level, $mode))['round'];
+                $rounds = max(Matches::getMatchesByLevelOrGroup($id, $level, $effectiveMode))['round'];
                 Standings::renderProgressMenu('season', $urlParams, $rounds);
                 $subaction = $_GET['subaction'] ?? $rounds;
-                Standings::renderProgress($id, $level, $subaction, $mode);
+                Standings::renderProgress($id, $level, $subaction, $effectiveMode);
                 break;
             case 'markers':
-                Markers::renderMarkerStandings($id, $level, $mode, 2);
+                Markers::renderMarkerStandings($id, $level, $effectiveMode, 2);
                 break;
             case 'stats':
                 $urlParams['action'] = 'stats';
-                Stats::renderMenu('season', $urlParams, $mode);
+                Stats::renderMenu('season', $urlParams, $effectiveMode);
                 $subaction = $_GET['subaction'] ?? 'overview';
-                Stats::renderStats($id, $level, $subaction, $mode);
+                Stats::renderStats($id, $level, $subaction, $effectiveMode);
                 break;
             case 'nextphase':
                 Matches::generateNextPhase($id, $round_trip);
+                break;
+            case 'finalphase':
+                Matches::generateFinalPhase($id, $round_trip, $effectiveMode);
                 break;
             case 'end':
                 Seasons::setSeasonStatusEnd($id);

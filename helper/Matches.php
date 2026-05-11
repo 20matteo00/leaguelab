@@ -39,6 +39,10 @@ class Matches
             default:
                 break;
         }
+
+        DB::table('seasons')->where('id', '=', $seasonId)->update([
+            'status' => 1,
+        ]);
     }
 
 
@@ -188,6 +192,37 @@ class Matches
         exit;
     }
 
+    public static function generateFinalPhase($id, $ar = 0, $mode = 1)
+    {
+        $groups = Seasons::getMaxLevelBySeason($id);
+        $compid = DB::table('seasons')->select('competition_id')->where('id', '=', $id)->first()['competition_id'];
+
+        $qualified = [];
+        for ($i = 1; $i <= $groups; $i++) {
+            $spots = Competitions::getQualifiedTeamsByCompAndGroup($compid, $i);
+            $matches = Matches::getMatchesByLevelOrGroup($id, $i, $mode);
+            $teams = Matches::getTeamsByLevelOrGroup($id, $i, $mode);
+            $teams = array_column($teams, 'team_id');
+            $t = [];
+            foreach ($teams as $team) {
+                $t[$team] = Teams::getTeamNameById($team);
+            }
+            $standings = Standings::buildStandings($matches, $t, 'all');
+            $qualified[$i] = array_slice($standings, 0, $spots, true);
+        }
+        $qualifiedTeams[1] = array_merge(...array_map(fn($group) => array_keys($group), $qualified));
+
+        $matches = self::generateknockout($qualifiedTeams, $ar);
+        self::insertMatches($matches, $id, 'knockout');
+
+        DB::table('seasons')->where('id', '=', $id)->update([
+            'status' => 2,
+        ]);
+
+        header("Location: index.php?page=season&id=" . $id);
+        exit;
+    }
+
     private static function insertMatches($matches, $seasonId, $type = 'league')
     {
         if (empty($matches))
@@ -241,10 +276,6 @@ class Matches
                 }
             }
         }
-
-        DB::table('seasons')->where('id', '=', $seasonId)->update([
-            'status' => 1,
-        ]);
     }
 
     public static function checkNullMatches($seasonId)
@@ -336,6 +367,7 @@ class Matches
     {
         $matches = DB::table('matches')
             ->where('season_id', '=', $seasonId)
+            ->whereNotNull('phase')
             ->get();
 
         $pairs = self::buildPairs($matches);
@@ -880,27 +912,50 @@ class Matches
 <?php
     }
 
-    public static function getMatchesByLevelOrGroup($seasonId, $level, $mode)
+    public static function getMatchesByLevelOrGroup($seasonId, $value, $onlyphase = false)
     {
-        $levelOrGroup = $mode == 3 ? 'group_id' : 'level';
-        $matches = DB::table('matches')
+        $query = DB::table('matches')
+            ->where('season_id', '=', $seasonId);
+
+        // prima prova group_id
+        $hasGroup = DB::table('matches')
             ->where('season_id', '=', $seasonId)
-            ->where($levelOrGroup, '=', $level)
+            ->where('group_id', '=', $value)
+            ->exists();
+
+        if ($hasGroup) {
+            if ($onlyphase) {
+                $query->whereNotNull('phase');
+            } else {
+                $query->where('group_id', '=', $value);
+            }
+        } else {
+            $query->where('level', '=', $value);
+        }
+
+        return $query
             ->orderBy('phase', 'ASC')
             ->orderBy('round')
             ->get();
-
-        return $matches;
     }
 
-    public static function getTeamsByLevelOrGroup($seasonId, $level, $mode)
+    public static function getTeamsByLevelOrGroup($seasonId, $value)
     {
-        $levelOrGroup = $mode == 3 ? 'group_id' : 'level';
-        $teams = DB::table('season_teams')
-            ->where('season_id', '=', $seasonId)
-            ->where($levelOrGroup, '=', $level)
-            ->get();
+        $query = DB::table('season_teams')
+            ->where('season_id', '=', $seasonId);
 
-        return $teams;
+        // prova group_id
+        $hasGroup = DB::table('season_teams')
+            ->where('season_id', '=', $seasonId)
+            ->where('group_id', '=', $value)
+            ->exists();
+
+        if ($hasGroup) {
+            $query->where('group_id', '=', $value);
+        } else {
+            $query->where('level', '=', $value);
+        }
+
+        return $query->get();
     }
 }

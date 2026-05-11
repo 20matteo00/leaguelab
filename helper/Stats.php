@@ -146,10 +146,10 @@ class Stats
         return $teamSelected;
     }
 
-    private static function renderTeamStats($seasonId, $level, $subaction, $mode)
+    private static function renderTeamStats($seasonId, $level, $subaction)
     {
 
-        $teams = Matches::getTeamsByLevelOrGroup($seasonId, $level, $mode);
+        $teams = Matches::getTeamsByLevelOrGroup($seasonId, $level);
         $teams = array_column($teams, 'team_id');
         $teams = Teams::orderTeamsByName($teams);
 
@@ -473,10 +473,17 @@ class Stats
                             if ($mode == 2) {
                                 $nameRound = ($match['round'] == 1) ? 'Andata' : 'Ritorno';
                             }
+                            
                             ?>
                             <tr>
                                 <?php if ($mode == 2): ?>
-                                    <td><?= Competitions::$round_names[$match['phase'] - 1] ?></td>
+                                    <td>
+                                        <?php if ($match['phase']) : ?>
+                                            <?= Competitions::$round_names[$match['phase'] - 1] ?>
+                                        <?php else : ?>
+                                            <span>Fase a Gironi - Gruppo: <?= $match['group_id'] ?> - Giornata: <?= $match['round'] ?></span>
+                                        <?php endif; ?>
+                                    </td>
                                 <?php endif; ?>
                                 <td><?= $nameRound ?></td>
                                 <td>

@@ -325,8 +325,9 @@ class Seasons
         return $newSeasonId;
     }
 
-    public static function renderMenu($page, $urlParams, $mode)
+    public static function renderMenu($page, $urlParams, $mode, $status = null)
     {
+        if($status && $status == 2) $mode = 2;
         $menu = self::$menu[$mode];
 ?>
         <div class="row g-2 mb-4">
