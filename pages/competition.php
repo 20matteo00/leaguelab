@@ -36,13 +36,11 @@ $actionHaveLevels = in_array($action, ['all_time_standings', 'hall_of_fame', 'al
         $mode = (int) $competition['modality'];
 
         // Livelli (solo campionato)
-        $levels = [];
-        if ($mode === 1) {
-            $levels = DB::table('competition_levels')
-                ->where('competition_id', '=', $id)
-                ->orderBy('level', 'ASC')
-                ->get();
-        }
+        $levels = DB::table('competition_levels')
+            ->where('competition_id', '=', $id)
+            ->orderBy('level', 'ASC')
+            ->get() ?? [];
+
 
         // Stagioni
         $seasons = DB::table('seasons')

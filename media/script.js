@@ -13,29 +13,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (target) document.getElementById(target)?.classList.remove('d-none');
     }
 
-    function onParticipantsChange() {
-        const n = parseInt(participantsEl.value);
-        const saved = groupsEl.dataset.saved;
-        groupsEl.innerHTML = '<option value="">-- seleziona --</option>';
-        qualifiedEl.innerHTML = '<option value="">-- seleziona --</option>';
-        if (!n) return;
-        for (let i = 2; i <= n / 2; i++) {
-            if (n % i === 0) groupsEl.appendChild(new Option(i, i, false, String(i) === saved));
-        }
-        if (saved) onGroupsChange();
-    }
-
-    function onGroupsChange() {
-        const n = parseInt(participantsEl.value);
-        const g = parseInt(groupsEl.value);
-        const saved = qualifiedEl.dataset.saved;
-        qualifiedEl.innerHTML = '<option value="">-- seleziona --</option>';
-        if (!n || !g) return;
-        const perGroup = n / g;
-        for (let i = 1; i <= perGroup; i++) {
-            qualifiedEl.appendChild(new Option(`${i} per gruppo`, i, false, String(i) === saved));
-        }
-    }
 
     modalityEl?.addEventListener('change', onModalityChange);
     participantsEl?.addEventListener('change', onParticipantsChange);
@@ -188,46 +165,136 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ── CONFIGURE MODE 3: GIRONI ─────────────────────────────────────────────
-    document.querySelectorAll('.group-select').forEach(sel => {
-        const req = parseInt(sel.dataset.required);
-        const counter = sel.closest('.card-body')?.querySelector('.group-counter');
+    const numGroupsInput = document.getElementById('num_groups_input');
+    const qualifiersInput = document.getElementById('qualifiers_input');
 
-        function updateGroupCounter() {
-            if (!counter) return;
-            const n = sel.selectedOptions.length;
-            if (n === req) {
-                counter.className = 'group-counter mt-1 fw-semibold text-success small';
-                counter.textContent = `✔ ${n} / ${req}`;
-            } else {
-                counter.className = 'group-counter mt-1 fw-semibold text-danger small';
-                counter.textContent = `${n} / ${req}`;
+    function filterQualifiers() {
+
+        if (!numGroupsInput || !qualifiersInput) return;
+
+        const selectedGroups = numGroupsInput.value;
+
+        // salva valore corrente
+        const currentValue = qualifiersInput.value;
+
+        let firstVisible = null;
+        let currentStillValid = false;
+
+        Array.from(qualifiersInput.options).forEach(opt => {
+
+            const isValid = opt.dataset.groups === selectedGroups;
+
+            opt.hidden = !isValid;
+            opt.disabled = !isValid;
+
+            if (isValid) {
+
+                if (!firstVisible) {
+                    firstVisible = opt;
+                }
+
+                // controllo se il valore corrente è ancora valido
+                if (opt.value === currentValue) {
+                    currentStillValid = true;
+                }
             }
-        }
-
-        sel.addEventListener('change', function () {
-            const chosen = Array.from(this.selectedOptions).map(o => o.value);
-
-            document.querySelectorAll('.group-select').forEach(other => {
-                if (other === this) return;
-                Array.from(other.options).forEach(opt => {
-                    if (chosen.includes(opt.value)) {
-                        opt.disabled = true;
-                        opt.selected = false;
-                    } else {
-                        const takenByOthers = Array.from(document.querySelectorAll('.group-select'))
-                            .filter(s => s !== other && s !== this)
-                            .some(s => Array.from(s.selectedOptions).map(o => o.value).includes(opt.value));
-                        if (!takenByOthers) opt.disabled = false;
-                    }
-                });
-                other.dispatchEvent(new Event('input'));
-            });
-
-            updateGroupCounter();
         });
 
-        sel.addEventListener('input', updateGroupCounter);
-        updateGroupCounter();
+        // mantieni valore corrente se valido
+        if (currentStillValid) {
+            qualifiersInput.value = currentValue;
+        }
+        // altrimenti prima opzione valida
+        else if (firstVisible) {
+            qualifiersInput.value = firstVisible.value;
+        }
+    }
+
+    numGroupsInput?.addEventListener('change', function () {
+        filterQualifiers();
+        renderGroups();
     });
+
+    qualifiersInput?.addEventListener('change', function () {
+        renderGroups();
+    });
+
+    filterQualifiers();
+
+
+    window.renderGroups = function () {
+        const container = document.getElementById('groups-container');
+        if (!container) return;
+
+        const numGroups = parseInt(document.getElementById('num_groups_input').value);
+        const qualifiers = parseInt(
+            document.getElementById('qualifiers_input')
+                .selectedOptions[0]
+                .dataset.qualifiers
+        );
+        const teamsPerGroup = Math.floor((window.PARTICIPANTS || 0) / numGroups);
+
+        container.innerHTML = '';
+
+        for (let g = 1; g <= numGroups; g++) {
+            const saved = window.EXISTING_LEVELS?.[g] || {};
+            const div = document.createElement('div');
+            div.className = 'card mb-3';
+            div.innerHTML = `
+            <div class="card-header fw-semibold bg-light">
+                Girone ${g}
+                <small class="text-muted">(${teamsPerGroup} squadre · ${qualifiers} qualificati)</small>
+            </div>
+            <div class="card-body">
+                <select name="group_${g}_teams[]" class="form-select group-select"
+                    data-required="${teamsPerGroup}" data-group="${g}"
+                    size="${Math.min(15, (window.ALL_TEAMS || []).length)}" multiple>
+                    ${(window.ALL_TEAMS || []).map(t =>
+                `<option value="${t.id}">${t.name}</option>`
+            ).join('')}
+                </select>
+                <small class="text-muted d-block mt-1">Ctrl/Cmd per selezione multipla</small>
+                <div class="group-counter mt-1 fw-semibold text-danger small"></div>
+            </div>
+        `;
+            container.appendChild(div);
+        }
+
+        // Riattiva i counter e il cross-disable tra gironi
+        initGroupSelects();
+    };
+
+    function initGroupSelects() {
+        document.querySelectorAll('.group-select').forEach(sel => {
+            const req = parseInt(sel.dataset.required);
+            const counter = sel.closest('.card-body')?.querySelector('.group-counter');
+
+            function updateCounter() {
+                if (!counter) return;
+                const n = sel.selectedOptions.length;
+                counter.className = n === req
+                    ? 'group-counter mt-1 fw-semibold text-success small'
+                    : 'group-counter mt-1 fw-semibold text-danger small';
+                counter.textContent = `${n} / ${req}`;
+            }
+
+            sel.addEventListener('change', function () {
+                const chosen = Array.from(this.selectedOptions).map(o => o.value);
+                document.querySelectorAll('.group-select').forEach(other => {
+                    if (other === this) return;
+                    Array.from(other.options).forEach(opt => {
+                        const takenByOthers = Array.from(document.querySelectorAll('.group-select'))
+                            .filter(s => s !== other)
+                            .some(s => Array.from(s.selectedOptions).map(o => o.value).includes(opt.value));
+                        opt.disabled = takenByOthers;
+                        if (takenByOthers) opt.selected = false;
+                    });
+                });
+                updateCounter();
+            });
+
+            updateCounter();
+        });
+    }
 
 });

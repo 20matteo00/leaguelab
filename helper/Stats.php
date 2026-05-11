@@ -40,7 +40,18 @@ class Stats
                 'label' => 'Incontri per Squadra'
             ],
         ],
-        3 => [],
+        3 => [
+            [
+                'subaction' => 'overview',
+                'icon' => 'calendar3',
+                'label' => 'Panoramica'
+            ],
+            [
+                'subaction' => 'team_matches',
+                'icon' => 'dribbble',
+                'label' => 'Incontri per Squadra'
+            ]
+        ],
     ];
 
     public static function renderGlobalMenu($page, $urlParams)
@@ -109,7 +120,7 @@ class Stats
             case 'overview':
                 break;
             case 'team_matches':
-                $team = self::renderTeamStats($seasonId, $level, $subaction);
+                $team = self::renderTeamStats($seasonId, $level, $subaction, $mode);
                 self::renderMatchesBySeasonAndTeam($seasonId, $level, $team, $mode);
                 break;
             default:
@@ -135,10 +146,10 @@ class Stats
         return $teamSelected;
     }
 
-    private static function renderTeamStats($seasonId, $level, $subaction)
+    private static function renderTeamStats($seasonId, $level, $subaction, $mode)
     {
 
-        $teams = DB::table('season_teams')->select('team_id')->where('season_id', '=', $seasonId)->where('level', '=', $level)->get();
+        $teams = Matches::getTeamsByLevelOrGroup($seasonId, $level, $mode);
         $teams = array_column($teams, 'team_id');
         $teams = Teams::orderTeamsByName($teams);
 
@@ -422,9 +433,10 @@ class Stats
     {
         if (empty($team))
             return;
+        $levelOrGroup = ($mode == 3) ? 'group_id' : 'level';
         $matches = DB::table('matches')
             ->where('season_id', '=', $seasonId)
-            ->where('level', '=', $level)
+            ->where($levelOrGroup, '=', $level)
             ->whereRaw("(team_home_id = :team OR team_away_id = :team)", [
                 'team' => $team
             ])->orderBy('phase', 'DESC')->orderBy('round', 'ASC')->get();

@@ -249,7 +249,7 @@ class Standings
     <?php
     }
 
-    public static function renderStandings($seasonId, $level, $subaction, $round_trip): void
+    public static function renderStandings($seasonId, $level, $subaction, $round_trip, $mode): void
     {
         if ($subaction == 'expected') {
             Standings::renderExpectedStandings($seasonId, $level);
@@ -259,10 +259,7 @@ class Standings
         $teams = Teams::orderTeamsByName($teams);
         $comp_params = [];
 
-        $matchesRaw = DB::table('matches')
-            ->where('season_id', '=', $seasonId)
-            ->where('level', '=', $level)
-            ->get();
+        $matchesRaw = Matches::getMatchesByLevelOrGroup($seasonId, $level, $mode);
 
         // Converti in array
         $matches = array_map(fn($m) => (array) $m, $matchesRaw);
@@ -407,7 +404,7 @@ class Standings
     <?php
     }
 
-    public static function renderProgress($seasonId, $level, $subaction): void
+    public static function renderProgress($seasonId, $level, $subaction, $mode): void
     {
         $upToRound = (int) $subaction;
 
@@ -433,10 +430,7 @@ class Standings
         $teams = Seasons::getTeamsLevelsBySeason($seasonId)[$level];
         $teams = Teams::orderTeamsByName($teams);
 
-        $allMatchesRaw = DB::table('matches')
-            ->where('season_id', '=', $seasonId)
-            ->where('level', '=', $level)
-            ->get();
+        $allMatchesRaw = Matches::getMatchesByLevelOrGroup($seasonId, $level, $mode);
 
         $allMatches = array_map(fn($m) => (array) $m, $allMatchesRaw);
 

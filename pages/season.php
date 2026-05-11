@@ -153,20 +153,20 @@ $draws = Matches::getDraws($id);
                 $urlParams['action'] = 'standings';
                 Standings::renderStandingsMenu('season', $urlParams, $round_trip);
                 $subaction = $_GET['subaction'] ?? 'total';
-                Standings::renderStandings($id, $level, $subaction, $round_trip);
+                Standings::renderStandings($id, $level, $subaction, $round_trip, $mode);
                 break;
             case 'bracket':
-                $mode == 1 ? Calendar::renderBracket($id, $level) : Calendar::renderKnockoutBracket($id, $level, $round_trip);
+                $mode !== 2 ? Calendar::renderBracket($id, $level, $mode) : Calendar::renderKnockoutBracket($id, $level, $round_trip);
                 break;
             case 'trend':
                 $urlParams['action'] = 'trend';
-                $rounds = max(DB::table('matches')->select('round')->where('season_id', '=', $season['id'])->where('level', '=', $level)->get())['round'];
+                $rounds = max(Matches::getMatchesByLevelOrGroup($id, $level, $mode))['round'];
                 Standings::renderProgressMenu('season', $urlParams, $rounds);
                 $subaction = $_GET['subaction'] ?? $rounds;
-                Standings::renderProgress($id, $level, $subaction);
+                Standings::renderProgress($id, $level, $subaction, $mode);
                 break;
             case 'markers':
-                Markers::renderMarkerStandings($id, $level, 2);
+                Markers::renderMarkerStandings($id, $level, $mode, 2);
                 break;
             case 'stats':
                 $urlParams['action'] = 'stats';

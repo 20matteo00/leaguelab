@@ -11,14 +11,6 @@ CREATE TABLE IF NOT EXISTS competitions (
     participants SMALLINT NOT NULL DEFAULT 0,
     -- tot squadre che entrano
     round_trip TINYINT NOT NULL DEFAULT 1,
-    -- andata e ritorno (0/1)
-    -- ⚽ solo modality=1 (campionato) → tutto già coperto sopra
-    -- 🔀 solo modality=3 (gironi+eliminazione)
-    num_groups TINYINT DEFAULT NULL,
-    -- quanti gironi
-    qualifiers TINYINT DEFAULT NULL,
-    -- quante passano per girone
-    -- 🌍 info
     country VARCHAR(2) DEFAULT NULL,
     images JSON DEFAULT NULL,
     params JSON DEFAULT NULL,

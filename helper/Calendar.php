@@ -40,7 +40,7 @@ class Calendar
 
                 // 🔵 Gironi (girone + giornata)
                 case 3:
-                    $grouped[$group][$round][] = $match;
+                    $grouped[$round][] = $match;
                     break;
             }
         }
@@ -48,12 +48,7 @@ class Calendar
     }
     public static function renderCalendar($seasonId, $level, $mode)
     {
-        $matches = DB::table('matches')
-            ->where('season_id', '=', $seasonId)
-            ->where('level', '=', $level)
-            ->orderBy('phase', 'ASC')
-            ->orderBy('round')
-            ->get();
+        $matches = Matches::getMatchesByLevelOrGroup($seasonId, $level, $mode);
 
         $grouped = self::groupMatches($matches, $mode);
 
@@ -144,6 +139,12 @@ class Calendar
                             <?php self::renderDays($roundMatches, $round, $isEnded, $phase, $isMinPhase); ?>
                         <?php endforeach; ?>
 
+                    <?php endforeach; ?>
+
+                <?php elseif ($mode == 3): ?>
+
+                    <?php foreach ($grouped as $round => $roundMatches): ?>
+                        <?php self::renderDays($roundMatches, $round, $isEnded); ?>
                     <?php endforeach; ?>
 
                 <?php endif; ?>
@@ -294,7 +295,7 @@ class Calendar
     // Appiattisce qualsiasi struttura grouped in [round => [matches]]
     private static function flattenGrouped(array $grouped, int $mode): array
     {
-        if ($mode === 1) {
+        if ($mode === 1 || $mode === 3) {
             return $grouped; // già [round => [matches]]
         }
 
@@ -490,14 +491,12 @@ class Calendar
         ];
     }
 
-    public static function renderBracket($seasonId, $level)
+    public static function renderBracket($seasonId, $level, $mode)
     {
         $teams = Seasons::getTeamsLevelsBySeason($seasonId)[$level];
         $teams = Teams::orderTeamsByName($teams);
-        $matches = DB::table('matches')
-            ->where('season_id', '=', $seasonId)
-            ->where('level', '=', $level)
-            ->get();
+        
+        $matches = Matches::getMatchesByLevelOrGroup($seasonId, $level, $mode);
 
         // Indicizza per [home_id][away_id] => match
         $matchMap = [];

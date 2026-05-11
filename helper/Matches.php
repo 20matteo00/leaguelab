@@ -31,6 +31,11 @@ class Matches
             case '2':
                 $matches = self::generateKnockout($teams, $round_trip);
                 self::insertMatches($matches, $seasonId, 'knockout');
+
+            case '3':
+                $matches = self::generateLeague($teams, $round_trip);
+                self::insertMatches($matches, $seasonId, 'grupos');
+                break;
             default:
                 break;
         }
@@ -210,6 +215,20 @@ class Matches
                             'level' => $levelOrGroup,
                             'group_id' => null,
                             'phase' => $match['phase'],
+                            'team_home_id' => $match['home'],
+                            'team_away_id' => $match['away'],
+                            'score_home' => null,
+                            'score_away' => null,
+                            'match_date' => null,
+                            'round' => $roundIndex + 1,
+                            'status' => 0,
+                        ]);
+                    } elseif ($type == 'grupos') {
+                        DB::table('matches')->insert([
+                            'season_id' => $seasonId,
+                            'level' => 1,
+                            'group_id' => $levelOrGroup,
+                            'phase' => null,
                             'team_home_id' => $match['home'],
                             'team_away_id' => $match['away'],
                             'score_home' => null,
@@ -859,5 +878,29 @@ class Matches
             <?php endif; ?>
         </div>
 <?php
+    }
+
+    public static function getMatchesByLevelOrGroup($seasonId, $level, $mode)
+    {
+        $levelOrGroup = $mode == 3 ? 'group_id' : 'level';
+        $matches = DB::table('matches')
+            ->where('season_id', '=', $seasonId)
+            ->where($levelOrGroup, '=', $level)
+            ->orderBy('phase', 'ASC')
+            ->orderBy('round')
+            ->get();
+
+        return $matches;
+    }
+
+    public static function getTeamsByLevelOrGroup($seasonId, $level, $mode)
+    {
+        $levelOrGroup = $mode == 3 ? 'group_id' : 'level';
+        $teams = DB::table('season_teams')
+            ->where('season_id', '=', $seasonId)
+            ->where($levelOrGroup, '=', $level)
+            ->get();
+
+        return $teams;
     }
 }

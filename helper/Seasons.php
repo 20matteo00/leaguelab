@@ -71,7 +71,38 @@ class Seasons
                 'label' => 'Statistiche'
             ]
         ],
-        3 => [],
+        3 => [
+            [
+                'action' => 'calendar',
+                'icon' => 'calendar-event',
+                'label' => 'Calendario'
+            ],
+            [
+                'action' => 'standings',
+                'icon' => 'trophy',
+                'label' => 'Classifica'
+            ],
+            [
+                'action' => 'bracket',
+                'icon' => 'diagram-3',
+                'label' => 'Tabellone'
+            ],
+            [
+                'action' => 'trend',
+                'icon' => 'graph-up-arrow',
+                'label' => 'Andamento'
+            ],
+            [
+                'action' => 'markers',
+                'icon' => 'person-standing',
+                'label' => 'Marcatori'
+            ],
+            [
+                'action' => 'stats',
+                'icon' => 'bar-chart',
+                'label' => 'Statistiche'
+            ]
+        ],
     ];
 
     public static function getTeamsLevelsBySeason($seasonId)
@@ -116,11 +147,18 @@ class Seasons
     public static function getMaxLevelBySeason($seasonId)
     {
         $result = DB::table('season_teams')
+            ->select('MAX(group_id) as max_level')
+            ->where('season_id', '=', $seasonId)
+            ->first()['max_level'];
+
+        if ($result) return (int) $result;
+
+        $result = DB::table('season_teams')
             ->select('MAX(level) as max_level')
             ->where('season_id', '=', $seasonId)
-            ->first();
+            ->first()['max_level'];
 
-        return (int) ($result['max_level'] ?? 0);
+        return (int) ($result ?? 0);
     }
 
     public static function getSeasonStatus($seasonId)

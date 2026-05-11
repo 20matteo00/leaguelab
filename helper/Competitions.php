@@ -158,7 +158,6 @@ class Competitions
         $mode = (int) $competition['modality'];
         $mode_label = array_column($modality, 'name', 'code')[$mode] ?? '—';
         $country_name = array_column(Field::getStates(), 'name', 'code')[$competition['country'] ?? ''] ?? null;
-
     ?>
         <!-- ── INFO GENERALI ───────────────────────────────────────────────────── -->
         <div class="row my-3 g-3">
@@ -190,13 +189,16 @@ class Competitions
                                     </tr>
                                 <?php endif; ?>
                                 <?php if ($mode === 3): ?>
+                                    <?php
+                                    $pro = array_column($levels, 'promotion_spots')[0] ?? null;
+                                    ?>
                                     <tr>
                                         <th class="text-muted fw-normal">Gironi</th>
-                                        <td><?= $competition['num_groups'] ?></td>
+                                        <td><?= count($levels) ?></td>
                                     </tr>
                                     <tr>
                                         <th class="text-muted fw-normal">Qualificati/girone</th>
-                                        <td><?= $competition['qualifiers'] ?></td>
+                                        <td><?= $pro ?></td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>
@@ -275,9 +277,9 @@ class Competitions
                         <div class="card-header fw-semibold bg-light">⚽ Struttura Gironi</div>
                         <div class="card-body">
                             <?php
-                            $ng = (int) $competition['num_groups'];
+                            $ng = (int) count($levels); // numero gironi = livelli
                             $tpg = $ng > 0 ? (int) floor((int) $competition['participants'] / $ng) : 0;
-                            $q = (int) $competition['qualifiers'];
+                            $q = (int) $pro;
                             $tot_qualifiers = $ng * $q;
                             $bracket_size = 1;
                             while ($bracket_size < $tot_qualifiers)
@@ -400,5 +402,49 @@ class Competitions
             </div>
         </div>
 <?php
+    }
+
+    private static function isPowerOfTwo(int $n): bool
+    {
+        return $n > 0 && ($n & ($n - 1)) === 0;
+    }
+
+    public static function getTournamentOptions(int $participants): array
+    {
+        $options = [];
+
+        for ($groups = 1; $groups <= $participants; $groups++) {
+
+            // divisione perfetta
+            if ($participants % $groups !== 0) {
+                continue;
+            }
+
+            $playersPerGroup = $participants / $groups;
+
+            // vincolo gironi
+            if ($playersPerGroup < 4 || $playersPerGroup > 20) {
+                continue;
+            }
+
+            // proviamo i qualificati per girone
+            for ($qPerGroup = 1; $qPerGroup <= $playersPerGroup; $qPerGroup++) {
+
+                $totalQualified = $groups * $qPerGroup;
+
+                if (!self::isPowerOfTwo($totalQualified)) {
+                    continue;
+                }
+
+                $options[] = [
+                    'groups' => $groups,
+                    'players_per_group' => $playersPerGroup,
+                    'qualifiers_per_group' => $qPerGroup,
+                    'total_qualified' => $totalQualified
+                ];
+            }
+        }
+
+        return $options;
     }
 }

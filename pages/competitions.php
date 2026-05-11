@@ -65,8 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'create') {
         'modality'     => $_POST['modality'],
         'participants' => $_POST['participants'],
         'round_trip'   => $_POST['round_trip']   ?? 0,
-        'num_groups'   => $_POST['num_groups']   ?? null,
-        'qualifiers'   => $_POST['qualifiers']   ?? null,
         'images'       => $image_path ? json_encode(['logo' => $image_path]) : null,
         'created'      => date('Y-m-d H:i:s'),
     ]);
@@ -97,8 +95,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'edit' && $id) {
         'modality'     => $_POST['modality'],
         'participants' => $_POST['participants'],
         'round_trip'   => $_POST['round_trip']   ?? 0,
-        'num_groups'   => $_POST['num_groups']   ?? null,
-        'qualifiers'   => $_POST['qualifiers']   ?? null,
         'images'       => $image_path ? json_encode(['logo' => $image_path]) : null,
         'created'      => date('Y-m-d H:i:s'),
     ]);
@@ -128,7 +124,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'configure' && $id) {
         $team_ids = $_POST['teams'] ?? [];
         $part = count($team_ids);
     } elseif ($mode === 3) {
-        $num_groups = (int)$comp['num_groups'];
+        $num_groups = (int)($_POST['num_groups_cfg'] ?? 0);
+        $qualifiers = (int) explode('-', $_POST['qualifiers_cfg'])[1] ?? 0;
+
         for ($g = 1; $g <= $num_groups; $g++) {
             $part += count($_POST["group_{$g}_teams"] ?? []);
         }
@@ -213,8 +211,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'configure' && $id) {
 
     // ── MODE 3: GIRONI ────────────────────────────────────────────────────────
     elseif ($mode === 3) {
+        $num_groups = (int)($_POST['num_groups_cfg'] ?? 0);
+        $qualifiers = (int) explode('-', $_POST['qualifiers_cfg'])[1] ?? 0;
         for ($g = 1; $g <= $num_groups; $g++) {
             $teams_in_group = $_POST["group_{$g}_teams"] ?? [];
+
+            // Upsert competition_levels per questo girone
+            $existing_cl = DB::table('competition_levels')
+                ->where('competition_id', '=', $id)
+                ->where('level', '=', $g)
+                ->first();
+
+            if ($existing_cl) {
+                DB::table('competition_levels')
+                    ->where('competition_id', '=', $id)
+                    ->where('level', '=', $g)
+                    ->update([
+                        'num_teams'        => count($teams_in_group),
+                        'promotion_spots'  => $qualifiers,
+                        'relegation_spots' => 0,
+                    ]);
+            } else {
+                DB::table('competition_levels')->insert([
+                    'competition_id'   => $id,
+                    'level'            => $g,
+                    'num_teams'        => count($teams_in_group),
+                    'promotion_spots'  => $qualifiers,
+                    'relegation_spots' => 0,
+                ]);
+            }
+
             foreach ($teams_in_group as $team_id) {
                 $team_id = (int)$team_id;
                 if ($team_id > 0) {
@@ -378,32 +404,16 @@ $linkExtra = [
 
                             <!-- GRUPPI -->
                             <div id="mod-gruppi" class="d-none col-12">
-                                <div class="row g-3">
-                                    <div class="col-12 col-md-4">
-                                        <label class="form-label">Partecipanti</label>
-                                        <select id="participants_groups" name="participants" class="form-select"
-                                            data-saved="<?= htmlspecialchars($competition['participants'] ?? '') ?>">
-                                            <option value="">-- seleziona --</option>
-                                            <?php foreach ($participantOptions as $v): ?>
-                                                <option value="<?= $v ?>"><?= $v ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                    <div class="col-12 col-md-4">
-                                        <label class="form-label">Gruppi</label>
-                                        <select id="num_groups" name="num_groups" class="form-select"
-                                            data-saved="<?= htmlspecialchars($competition['num_groups'] ?? '') ?>">
-                                            <option value="">-- seleziona --</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-12 col-md-4">
-                                        <label class="form-label">Qualificati</label>
-                                        <select id="qualifiers" name="qualifiers" class="form-select"
-                                            data-saved="<?= htmlspecialchars($competition['qualifiers'] ?? '') ?>">
-                                            <option value="">-- seleziona --</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                <label class="form-label">Partecipanti</label>
+                                <select name="participants" class="form-select">
+                                    <option value="">-- seleziona --</option>
+                                    <?php foreach ($participantOptions as $v): ?>
+                                        <option value="<?= $v ?>"
+                                            <?= ($competition['participants'] ?? '') == $v ? 'selected' : '' ?>>
+                                            <?= $v ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
 
                         </div>
@@ -451,13 +461,11 @@ $linkExtra = [
 
             $mode            = (int)$comp['modality'];
             $participants    = (int)$comp['participants'];
-            $num_groups      = (int)($comp['num_groups'] ?? 0);
-            $qualifiers      = (int)($comp['qualifiers'] ?? 0);
             $mode_label      = array_column($modality, 'name', 'code')[$mode] ?? '';
             $all_teams       = DB::table('teams')->select('id, name')->orderBy('name', 'ASC')->get();
             $existing_levels = [];
 
-            if ($mode === 1) {
+            if ($mode === 1 || $mode === 3) {
                 $rows = DB::table('competition_levels')
                     ->where('competition_id', '=', $id)
                     ->orderBy('level', 'ASC')
@@ -466,6 +474,9 @@ $linkExtra = [
                     $existing_levels[$row['level']] = $row;
                 }
             }
+
+            $num_groups = count($existing_levels); // 0 se non ancora configurato
+            $qualifiers = !empty($existing_levels[1]) ? (int)$existing_levels[1]['promotion_spots'] : 0;
 
             $teams_per_group = $num_groups > 0 ? (int)floor($participants / $num_groups) : 0;
             ?>
@@ -497,7 +508,9 @@ $linkExtra = [
                             <script>
                                 window.ALL_TEAMS = <?= json_encode(array_values($all_teams)) ?>;
                                 window.EXISTING_LEVELS = <?= json_encode($existing_levels) ?>;
-                                document.addEventListener('DOMContentLoaded', window.renderLevels);
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    window.renderLevels();
+                                });
                             </script>
 
                         <?php elseif ($mode === 2): ?>
@@ -525,42 +538,80 @@ $linkExtra = [
 
                         <?php elseif ($mode === 3): ?>
                             <!-- ── MODE 3: GIRONI ─────────────────────────────────────────── -->
-                            <div class="mb-3">
-                                <span class="badge bg-secondary fs-6 me-2"><?= $num_groups ?> gironi</span>
-                                <span class="badge bg-secondary fs-6 me-2"><?= $teams_per_group ?> squadre per girone</span>
-                                <span class="badge bg-secondary fs-6"><?= $qualifiers ?> qualificati per girone</span>
+                            <?php
+                            $options = Competitions::getTournamentOptions($participants);
+
+                            // estraggo valori unici gironi
+                            $groupsOptions = [];
+                            foreach ($options as $opt) {
+                                $groupsOptions[$opt['groups']] = $opt;
+                            }
+                            ?>
+
+                            <div class="mb-3 d-flex align-items-center gap-3">
+
+                                <label class="form-label fw-semibold mb-0">
+                                    Numero Gironi
+                                </label>
+
+                                <select
+                                    id="num_groups_input"
+                                    name="num_groups_cfg"
+                                    class="form-select w-auto">
+                                    <?php foreach ($groupsOptions as $groups => $opt): ?>
+                                        <option value="<?= $groups ?>">
+                                            <?= $groups ?>
+                                            (<?= $opt['players_per_group'] ?> per girone)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+
+                                <label class="form-label fw-semibold mb-0 ms-3">
+                                    Qualificati per Girone
+                                </label>
+
+                                <select
+                                    id="qualifiers_input"
+                                    name="qualifiers_cfg"
+                                    class="form-select w-auto">
+                                    <?php
+                                    $seen = [];
+
+                                    foreach ($options as $opt):
+
+                                        $key = $opt['groups'] . '-' . $opt['qualifiers_per_group'];
+
+                                        if (isset($seen[$key])) continue;
+                                        $seen[$key] = true;
+                                    ?>
+
+                                        <option
+                                            value="<?= $opt['groups'] ?>-<?= $opt['qualifiers_per_group'] ?>"
+                                            data-groups="<?= $opt['groups'] ?>"
+                                            data-qualifiers="<?= $opt['qualifiers_per_group'] ?>">
+                                            <?= $opt['qualifiers_per_group'] ?>
+                                        </option>
+
+                                    <?php endforeach; ?>
+                                </select>
+
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    onclick="renderGroups()">
+                                    Aggiorna
+                                </button>
+
                             </div>
 
-                            <div class="row g-3">
-                                <?php for ($g = 1; $g <= $num_groups; $g++): ?>
-                                    <div class="col-12 col-md-6 col-lg-3">
-                                        <div class="card h-100">
-                                            <div class="card-header fw-semibold bg-light">
-                                                Girone <?= $g ?>
-                                                <small class="text-muted">(<?= $teams_per_group ?> squadre)</small>
-                                            </div>
-                                            <div class="card-body">
-                                                <select name="group_<?= $g ?>_teams[]"
-                                                    class="form-select group-select"
-                                                    data-required="<?= $teams_per_group ?>"
-                                                    data-group="<?= $g ?>"
-                                                    size="<?= min(15, count($all_teams)) ?>"
-                                                    multiple>
-                                                    <?php foreach ($all_teams as $team): ?>
-                                                        <option value="<?= $team['id'] ?>">
-                                                            <?= htmlspecialchars($team['name']) ?>
-                                                        </option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                                <small class="text-muted d-block mt-1">
-                                                    Ctrl/Cmd per selezione multipla
-                                                </small>
-                                                <div class="group-counter mt-1 fw-semibold text-danger small"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php endfor; ?>
-                            </div>
+                            <div id="groups-container"></div>
+
+                            <script>
+                                window.ALL_TEAMS = <?= json_encode(array_values($all_teams)) ?>;
+                                window.EXISTING_LEVELS = <?= json_encode($existing_levels) ?>;
+                                window.PARTICIPANTS = <?= $participants ?>;
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    window.renderGroups(); // chiamata ritardata, a quel punto è già definita
+                                });
+                            </script>
 
                         <?php endif; ?>
 

@@ -39,14 +39,10 @@ class Markers
         return $scorers;
     }
 
-    private static function getMarkersStandings($seasonId, $level): array
+    private static function getMarkersStandings($seasonId, $level, $mode): array
     {
         $matchIds = array_column(
-            DB::table('matches')
-                ->select('id')
-                ->where('season_id', '=', $seasonId)
-                ->where('level', '=', $level)
-                ->get(),
+            Matches::getMatchesByLevelOrGroup($seasonId, $level, $mode),
             'id'
         );
 
@@ -124,9 +120,9 @@ class Markers
     <?php
     }
 
-    public static function renderMarkerStandings($seasonId, $level, $minGoal = null): void
+    public static function renderMarkerStandings($seasonId, $level, $mode, $minGoal = null): void
     {
-        $scorers = self::getMarkersStandings($seasonId, $level);
+        $scorers = self::getMarkersStandings($seasonId, $level, $mode);
 
         if ($minGoal) {
             $scorers = array_filter($scorers, function ($item) use ($minGoal) {
