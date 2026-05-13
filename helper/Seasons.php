@@ -11,6 +11,10 @@ class Seasons
             'label' => 'In corso',
             'badge' => 'success'
         ],
+        2 => [
+            'label' => 'Fase Finale',
+            'badge' => 'success'
+        ],
         99 => [
             'label' => 'Conclusa',
             'badge' => 'dark'
